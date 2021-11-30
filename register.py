@@ -50,18 +50,18 @@ class register_ui:
             QMessageBox.critical(self.ui, '错误', '确认密码不能为空')
         elif password != confirm_passwd:
             QMessageBox.critical(self.ui, '错误', '两次输入的密码不同！')
-
-        # 执行SQL语句
-        sql = r"insert into user_information(user_name, password, target) values('%s', '%s', '%s');" \
-              % (username, password, '0')
-        try:
-            self.cursor.execute(sql)
-            self.connect_obj.commit()
-            QMessageBox.information(self.ui, '注册成功', '请前往登录界面')
-            self.clear()
-        except Exception as e:
-            QMessageBox.critical(self.ui, '注册失败', str(e))
-            self.connect_obj.rollback()
+        else:
+            # 执行SQL语句
+            sql = r"insert into user_information(user_name, password, target) values('%s', '%s', '%s');" \
+                  % (username, password, '0')
+            try:
+                self.cursor.execute(sql)
+                self.connect_obj.commit()
+                QMessageBox.information(self.ui, '注册成功', '请前往登录界面')
+                self.clear()
+            except Exception as e:
+                QMessageBox.critical(self.ui, '注册失败', str(e))
+                self.connect_obj.rollback()
 
     def clear(self):
         """
