@@ -13,13 +13,6 @@ class main_ui:
         qfile.close()
 
         self.ui = QUiLoader().load(qfile)
-        self.register_ui = register_ui().ui
-
-        self.ui.register_btn.clicked.connect(self.register)
-
-    def register(self):
-        self.ui.close()
-        self.register_ui.show()
 
 
 if __name__ == '__main__':
