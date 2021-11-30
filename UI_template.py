@@ -7,11 +7,23 @@ from tool import *
 
 
 class ui:
-    def __init__(self):
+    """***"""
+
+    def __init__(self, connect_obj, cursor):
+        """
+        实例化对象
+
+        :param connect_obj: 数据库连接对象
+        :param cursor: 数据库游标对象
+        """
+        # 获取数据库连接
+        self.connect_obj = connect_obj
+        self.cursor = cursor
+
+        # 动态加载界面
         qfile = QFile("***.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
-
         self.ui = QUiLoader().load(qfile)
 
 
