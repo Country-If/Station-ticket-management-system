@@ -3,8 +3,7 @@
 
 __author__ = "Maylon"
 
-import pymysql
-from sshtunnel import SSHTunnelForwarder
+from tool import *
 
 if __name__ == '__main__':
     # 通过SSH连接云服务器
@@ -34,7 +33,7 @@ if __name__ == '__main__':
         print(result)
     except Exception as e:
         print(e)
-        cursor.rollback()
+        connect_obj.rollback()
 
     # 断开连接
     cursor.close()
