@@ -3,16 +3,12 @@
 
 __author__ = "Maylon"
 
-
-from PySide2.QtWidgets import QApplication
-from PySide2.QtUiTools import QUiLoader
-from PySide2.QtCore import QFile
-import sys
+from tool import *
 
 
-class register_ui:
+class ui:
     def __init__(self):
-        qfile = QFile("register.ui")
+        qfile = QFile("***.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
 
@@ -21,6 +17,6 @@ class register_ui:
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = register_ui()
+    window = ui()
     window.ui.show()
     app.exec_()
