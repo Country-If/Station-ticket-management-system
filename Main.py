@@ -142,7 +142,7 @@ class Main:
         elif destination == '':
             self.query_destination(departure)
         else:
-            self.input_check(departure, destination, date)
+            self.query_check(departure, destination, date)
 
     def query_departure(self, destination):
         sql = r"select distinct departure from train_information where destination='%s';" % destination
@@ -168,7 +168,7 @@ class Main:
         except Exception as e:
             err_print(self.query_ui.ui, e)
 
-    def input_check(self, departure, destination, date):
+    def query_check(self, departure, destination, date):
         # 查询始发站和终点站是否有日期信息
         sql = r"select date from train_information where departure='%s' and destination='%s';" % (departure, destination)
         try:
