@@ -7,6 +7,8 @@ from tool import *
 from main_ui import main_ui
 from register import register_ui
 from login import login_ui
+from query import query_ui
+from query_result import query_result_ui
 from query_result_login import query_result_login_ui
 
 
@@ -20,22 +22,30 @@ class Main:
         """
         self.connect_obj = connect_obj
         self.cursor = cursor
-        self.login_status = False   # 登录状态
+        self.login_status = False  # 登录状态
+        self.username = ""  # 用户名
 
         # 加载所有界面
         self.main_ui = main_ui()
         self.register_ui = register_ui(self.connect_obj, self.cursor)
         self.login_ui = login_ui()
+        self.query_ui = query_ui()
+        self.query_result_ui = query_result_ui(self.connect_obj, self.cursor)
         self.query_result_login_ui = query_result_login_ui(self.connect_obj, self.cursor)
 
         # 信号与槽连接
         self.main_ui.ui.register_btn.clicked.connect(self.to_register)
+        self.main_ui.ui.login_btn.clicked.connect(self.to_login)
+        self.main_ui.ui.query_btn.clicked.connect(self.main_to_query)
+
         self.register_ui.ui.back_btn.clicked.connect(self.register_back)
 
-        self.main_ui.ui.login_btn.clicked.connect(self.to_login)
         self.login_ui.ui.back_btn.clicked.connect(self.login_back)
         self.login_ui.ui.password_label.returnPressed.connect(self.login)
         self.login_ui.ui.login_btn.clicked.connect(self.login)
+
+        self.query_ui.ui.back_btn.clicked.connect(self.query_back)
+        self.query_ui.ui.query_btn.clicked.connect(self.query)
 
     def to_register(self):
         """
@@ -80,18 +90,18 @@ class Main:
         :return: None
         """
         # 获取输入框文本
-        username = self.login_ui.ui.username_label.text()
+        self.username = self.login_ui.ui.username_label.text()
         password = self.login_ui.ui.password_label.text()
 
         # 对输入信息进行检查
-        if username == '':
+        if self.username == '':
             QMessageBox.critical(self.login_ui.ui, '错误', '用户名不能为空')
         elif password == '':
             QMessageBox.critical(self.login_ui.ui, '错误', '密码不能为空')
         else:
             # 执行SQL语句
             sql = r"select * from user_information where user_name='%s' and password='%s'" \
-                  % (username, password)
+                  % (self.username, password)
             try:
                 self.cursor.execute(sql)
                 result = self.cursor.fetchall()
@@ -102,12 +112,77 @@ class Main:
                     self.login_ui.ui.password_label.clear()
                     QMessageBox.information(self.login_ui.ui, '成功', '登录成功')
                     self.login_status = True
+                    # 切换界面
                     self.login_ui.ui.close()
-                    self.query_result_login_ui.ui.show()
+                    self.query_ui.ui.show()
                 else:
                     QMessageBox.critical(self.login_ui.ui, '登录失败', '用户名或密码错误')
             except Exception as e:
-                QMessageBox.critical(self.login_ui.ui, '登录失败', str(e))
+                err_print(self.login_ui.ui, e)
+
+    def main_to_query(self):
+        self.main_ui.ui.close()
+        self.query_ui.ui.show()
+
+    def query_back(self):
+        self.query_ui.ui.close()
+        self.main_ui.ui.show()
+
+    def query(self):
+        # 获取输入框文本
+        departure = self.query_ui.ui.departure_label.text()
+        destination = self.query_ui.ui.destination_label.text()
+        date = self.query_ui.ui.date_chosen.text()
+
+        # 对输入信息进行检查
+        if departure == '' and destination == '':
+            QMessageBox.critical(self.query_ui.ui, '错误', '始发站和终点站不能为空')
+        elif departure == '':
+            self.query_departure(destination)
+        elif destination == '':
+            self.query_destination(departure)
+        else:
+            self.input_check(departure, destination, date)
+
+    def query_departure(self, destination):
+        sql = r"select distinct departure from train_information where destination='%s';" % destination
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            if len(result) == 0:
+                QMessageBox.critical(self.query_ui.ui, '错误', '查询不到相关信息，请重新输入终点站')
+            else:
+                QMessageBox.information(self.query_ui.ui, '提示', '可选始发站为：' + str([d[0] for d in result]))
+        except Exception as e:
+            err_print(self.query_ui.ui, e)
+
+    def query_destination(self, departure):
+        sql = r"select distinct destination from train_information where departure='%s';" % departure
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            if len(result) == 0:
+                QMessageBox.critical(self.query_ui.ui, '错误', '查询不到相关信息，请重新输入始发站')
+            else:
+                QMessageBox.information(self.query_ui.ui, '提示', '可选终点站为：' + str([d[0] for d in result]))
+        except Exception as e:
+            err_print(self.query_ui.ui, e)
+
+    def input_check(self, departure, destination, date):
+        # 查询始发站和终点站是否有日期信息
+        sql = r"select date from train_information where departure='%s' and destination='%s';" % (departure, destination)
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            if len(result) == 0:
+                QMessageBox.critical(self.query_ui.ui, '错误', '查询不到信息，请重新输入')
+            else:
+                if datetime.date(*map(int, date.split('/'))) in [d[0] for d in result]:
+                    QMessageBox.information(self.query_ui.ui, '提示', '查询成功')
+                else:
+                    QMessageBox.information(self.query_ui.ui, '提示', '可选日期为：' + str([d[0].strftime("%Y-%m-%d") for d in result]))
+        except Exception as e:
+            err_print(self.query_ui.ui, e)
 
 
 def db_connect():
@@ -136,11 +211,11 @@ def db_connect():
         # 创建游标
         cursor = connect_obj.cursor()
         return server, connect_obj, cursor
-    except Exception as err:
-        print(err)
+    except Exception as e:
+        print(e)
 
 
-if __name__ == '__main__':
+def main():
     Server, Connect_obj, Cursor = db_connect()
 
     if Cursor:
@@ -156,3 +231,25 @@ if __name__ == '__main__':
     Cursor.close()
     Connect_obj.close()
     Server.close()
+
+
+def run_local():
+    Connect = pymysql.connect(host='localhost', user='root', password='root', database='ticket-managerment-system',
+                              port=3306)
+    Cursor = Connect.cursor()
+
+    try:
+        app = QApplication(sys.argv)
+        window = Main(Connect, Cursor)
+        window.main_ui.ui.show()
+        app.exec_()
+    except Exception as e:
+        print(e)
+
+    Cursor.close()
+    Connect.close()
+
+
+if __name__ == '__main__':
+    # run_local()
+    main()
