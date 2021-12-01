@@ -21,7 +21,7 @@ class query_result_login_ui:
         self.cursor = cursor
 
         # 动态加载界面
-        qfile = QFile("query_result_login.ui")
+        qfile = QFile("ui/query_result_login.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)

@@ -14,7 +14,7 @@ class login_ui:
         实例化对象
         """
         # 动态加载界面
-        qfile = QFile("login.ui")
+        qfile = QFile("ui/login.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)

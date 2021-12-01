@@ -8,7 +8,7 @@ from tool import *
 
 class main_ui:
     def __init__(self):
-        qfile = QFile("main.ui")
+        qfile = QFile("ui/main.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
 

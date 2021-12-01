@@ -14,7 +14,7 @@ class query_ui:
         实例化对象
         """
         # 动态加载界面
-        qfile = QFile("query.ui")
+        qfile = QFile("ui/query.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)

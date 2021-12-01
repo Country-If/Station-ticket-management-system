@@ -21,7 +21,7 @@ class register_ui:
         self.cursor = cursor
 
         # 动态加载界面
-        qfile = QFile("register.ui")
+        qfile = QFile("ui/register.ui")
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)
