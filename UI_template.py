@@ -28,7 +28,14 @@ class ui:
 
 
 if __name__ == '__main__':
+    Connect = pymysql.connect(host='localhost', user='root', password='root', database='ticket_management_system',
+                              port=3306)
+    Cursor = Connect.cursor()
+
     app = QApplication(sys.argv)
-    window = ui()
+    window = ui(Connect, Cursor)
     window.ui.show()
     app.exec_()
+
+    Cursor.close()
+    Connect.close()
