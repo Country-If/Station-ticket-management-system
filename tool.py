@@ -10,3 +10,6 @@ import sys
 import pymysql
 from sshtunnel import SSHTunnelForwarder
 
+
+def err_print(ui, err):
+    QMessageBox.critical(ui, '错误', str(err))
