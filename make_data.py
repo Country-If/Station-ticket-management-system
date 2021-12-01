@@ -10,7 +10,7 @@ import datetime
 
 
 def main():
-    Connect = pymysql.connect(host='localhost', user='root', password='root', database='ticket-management-system',
+    Connect = pymysql.connect(host='localhost', user='root', password='root', database='ticket_management_system',
                               port=3306)
     Cursor = Connect.cursor()
 
