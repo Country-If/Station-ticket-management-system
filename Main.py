@@ -34,8 +34,8 @@ class Main:
         self.query_result_login_ui = query_result_login_ui(self.connect_obj, self.cursor)
 
         # 信号与槽连接
-        self.main_ui.ui.register_btn.clicked.connect(self.to_register)
-        self.main_ui.ui.login_btn.clicked.connect(self.to_login)
+        self.main_ui.ui.register_btn.clicked.connect(self.main_to_register)
+        self.main_ui.ui.login_btn.clicked.connect(self.main_to_login)
         self.main_ui.ui.query_btn.clicked.connect(self.main_to_query)
 
         self.register_ui.ui.back_btn.clicked.connect(self.register_back)
@@ -47,7 +47,14 @@ class Main:
         self.query_ui.ui.back_btn.clicked.connect(self.query_back)
         self.query_ui.ui.query_btn.clicked.connect(self.query)
 
-    def to_register(self):
+        self.query_result_login_ui.ui.back_btn.clicked.connect(self.query_result_login_back)
+        self.query_result_login_ui.ui.logout_btn.clicked.connect(self.logout)
+
+        self.query_result_ui.ui.back_btn.clicked.connect(self.query_result_back)
+        self.query_result_ui.ui.login_btn.clicked.connect(self.query_result_to_login)
+        self.query_result_ui.ui.register_btn.clicked.connect(self.query_result_to_register)
+
+    def main_to_register(self):
         """
         主界面前往注册界面
 
@@ -65,7 +72,7 @@ class Main:
         self.register_ui.ui.close()
         self.main_ui.ui.show()
 
-    def to_login(self):
+    def main_to_login(self):
         """
         主界面前往登录界面
 
@@ -170,7 +177,8 @@ class Main:
 
     def query_check(self, departure, destination, date):
         # 查询始发站和终点站是否有日期信息
-        sql = r"select date from train_information where departure='%s' and destination='%s';" % (departure, destination)
+        sql = r"select date from train_information where departure='%s' and destination='%s';" % (
+        departure, destination)
         try:
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
@@ -182,13 +190,37 @@ class Main:
                     # 根据登录状态切换界面
                     self.query_ui.ui.close()
                     if self.login_status:
+                        self.query_result_login_ui.change_information(self.username, date, departure, destination)
                         self.query_result_login_ui.ui.show()
                     else:
+                        self.query_result_ui.change_information(date, departure, destination)
                         self.query_result_ui.ui.show()
                 else:
-                    QMessageBox.information(self.query_ui.ui, '提示', '可选日期为：' + str([d[0].strftime("%Y-%m-%d") for d in result]))
+                    QMessageBox.information(self.query_ui.ui, '提示',
+                                            '可选日期为：' + str([d[0].strftime("%Y-%m-%d") for d in result]))
         except Exception as e:
             err_print(self.query_ui.ui, e)
+
+    def query_result_login_back(self):
+        self.query_result_login_ui.ui.close()
+        self.main_ui.ui.show()
+
+    def logout(self):
+        self.login_status = False
+        self.query_result_login_ui.ui.close()
+        self.main_ui.ui.show()
+
+    def query_result_back(self):
+        self.query_result_ui.ui.close()
+        self.main_ui.ui.show()
+
+    def query_result_to_login(self):
+        self.query_result_ui.ui.close()
+        self.login_ui.ui.show()
+
+    def query_result_to_register(self):
+        self.query_result_ui.ui.close()
+        self.register_ui.ui.show()
 
 
 def db_connect():
