@@ -13,6 +13,7 @@ from query_result_login import query_result_login_ui
 
 
 class Main:
+
     def __init__(self, connect_obj, cursor):
         """
         实例化对象
@@ -128,14 +129,29 @@ class Main:
                 err_print(self.login_ui.ui, e)
 
     def main_to_query(self):
+        """
+        主界面前往查询界面
+
+        :return: None
+        """
         self.main_ui.ui.close()
         self.query_ui.ui.show()
 
     def query_back(self):
+        """
+        查询界面返回
+
+        :return: None
+        """
         self.query_ui.ui.close()
         self.main_ui.ui.show()
 
     def query(self):
+        """
+        查询按钮功能
+
+        :return: None
+        """
         # 获取输入框文本
         departure = self.query_ui.ui.departure_label.text()
         destination = self.query_ui.ui.destination_label.text()
@@ -152,6 +168,12 @@ class Main:
             self.query_check(departure, destination, date)
 
     def query_departure(self, destination):
+        """
+        已知终点站查询始发站
+
+        :param destination: 终点站
+        :return: None
+        """
         sql = r"select distinct departure from train_information where destination='%s';" % destination
         try:
             self.cursor.execute(sql)
@@ -164,6 +186,12 @@ class Main:
             err_print(self.query_ui.ui, e)
 
     def query_destination(self, departure):
+        """
+        已知始发站查询终点站
+
+        :param departure: 始发站
+        :return: None
+        """
         sql = r"select distinct destination from train_information where departure='%s';" % departure
         try:
             self.cursor.execute(sql)
@@ -176,9 +204,17 @@ class Main:
             err_print(self.query_ui.ui, e)
 
     def query_check(self, departure, destination, date):
+        """
+        检查日期及切换界面
+
+        :param departure: 始发站
+        :param destination: 终点站
+        :param date: 日期
+        :return: None
+        """
         # 查询始发站和终点站是否有日期信息
-        sql = r"select date from train_information where departure='%s' and destination='%s';" % (
-        departure, destination)
+        sql = r"select date from train_information where departure='%s' and destination='%s';" \
+              % (departure, destination)
         try:
             self.cursor.execute(sql)
             result = self.cursor.fetchall()
@@ -202,23 +238,48 @@ class Main:
             err_print(self.query_ui.ui, e)
 
     def query_result_login_back(self):
+        """
+        登录后查询结果界面返回
+
+        :return: None
+        """
         self.query_result_login_ui.ui.close()
         self.main_ui.ui.show()
 
     def logout(self):
+        """
+        注销
+
+        :return: None
+        """
         self.login_status = False
         self.query_result_login_ui.ui.close()
         self.main_ui.ui.show()
 
     def query_result_back(self):
+        """
+        登录前查询结果界面返回
+
+        :return: None
+        """
         self.query_result_ui.ui.close()
         self.main_ui.ui.show()
 
     def query_result_to_login(self):
+        """
+        登录前查询结果界面前往登录
+
+        :return: None
+        """
         self.query_result_ui.ui.close()
         self.login_ui.ui.show()
 
     def query_result_to_register(self):
+        """
+        登录前查询结果界面前往注册
+
+        :return: None
+        """
         self.query_result_ui.ui.close()
         self.register_ui.ui.show()
 
