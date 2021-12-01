@@ -179,6 +179,12 @@ class Main:
             else:
                 if datetime.date(*map(int, date.split('/'))) in [d[0] for d in result]:
                     QMessageBox.information(self.query_ui.ui, '提示', '查询成功')
+                    # 根据登录状态切换界面
+                    self.query_ui.ui.close()
+                    if self.login_status:
+                        self.query_result_login_ui.ui.show()
+                    else:
+                        self.query_result_ui.ui.show()
                 else:
                     QMessageBox.information(self.query_ui.ui, '提示', '可选日期为：' + str([d[0].strftime("%Y-%m-%d") for d in result]))
         except Exception as e:
