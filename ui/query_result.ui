@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>737</width>
+    <width>661</width>
     <height>419</height>
    </rect>
   </property>
@@ -136,11 +136,6 @@
      </column>
      <column>
       <property name="text">
-       <string>座位号</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
        <string>发车时间</string>
       </property>
      </column>
@@ -151,12 +146,12 @@
      </column>
      <column>
       <property name="text">
-       <string>座位等级</string>
+       <string>一等座剩余</string>
       </property>
      </column>
      <column>
       <property name="text">
-       <string>票价</string>
+       <string>二等座剩余</string>
       </property>
      </column>
      <column>
