@@ -231,6 +231,7 @@ class Main:
                     else:
                         self.query_result_ui.change_information(date, departure, destination)
                         self.query_result_ui.ui.show()
+                    self.load_data(departure, destination, date)
                 else:
                     QMessageBox.information(self.query_ui.ui, '提示',
                                             '可选日期为：' + str([d[0].strftime("%Y-%m-%d") for d in result]))
@@ -283,6 +284,76 @@ class Main:
         self.query_result_ui.ui.close()
         self.register_ui.ui.show()
 
+    def load_data(self, departure, destination, date):
+        sql = r"SELECT `train_information`.`train_id`,`seat_id`,`departure_time`,`arrival_time`,`rank`,`price`,`is_used` " \
+              r"FROM `train_information`,`seat_information` " \
+              r"WHERE `train_information`.`train_id`=`seat_information`.`train_id` AND `departure`='%s' AND `destination`='%s' AND `date`='%s';" \
+              % (departure, destination, date)
+        try:
+            if self.login_status:
+                self.fill_table(self.query_result_login_ui.ui, sql)
+            else:
+                self.fill_table(self.query_result_ui.ui, sql)
+        except Exception as e:
+            if self.login_status:
+                err_print(self.query_result_login_ui.ui, e)
+            else:
+                err_print(self.query_result_ui.ui, e)
+
+    def fill_table_login(self, result):
+        try:
+            for row in range(len(result)):
+                self.query_result_login_ui.ui.result_table.insertRow(row)
+                for col in range(len(result[0])):
+                    if col == len(result[0]) - 1:
+                        if result[row][col] == 0:
+                            pass
+                            btn = QPushButton('订票')
+                            self.query_result_login_ui.ui.result_table.setCellWidget(row, col, btn)
+                        else:
+                            item = QTableWidgetItem("无票")
+                            item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
+                            item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
+                            self.query_result_login_ui.ui.result_table.setItem(row, col, item)
+                    else:
+                        item = QTableWidgetItem(str(result[row][col]))
+                        item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
+                        item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
+                        self.query_result_login_ui.ui.result_table.setItem(row, col, item)
+        except Exception as e:
+            self.query_result_login_ui.ui.result_table.clearContents()
+            self.query_result_login_ui.ui.result_table.setRowCount(0)
+            err_print(self.query_result_login_ui.ui, e)
+
+    def fill_table(self, ui, sql):
+        try:
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            if len(result) == 0:
+                raise ValueError("查询不到数据")
+
+            for row in range(len(result)):
+                ui.result_table.insertRow(row)
+                for col in range(len(result[0])):
+                    if col == len(result[0]) - 1:
+                        if result[row][col] == 0:
+                            btn = QPushButton('订票')
+                            ui.result_table.setCellWidget(row, col, btn)
+                        else:
+                            item = QTableWidgetItem("无票")
+                            item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
+                            item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
+                            ui.result_table.setItem(row, col, item)
+                    else:
+                        item = QTableWidgetItem(str(result[row][col]))
+                        item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
+                        item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
+                        ui.result_table.setItem(row, col, item)
+        except Exception as e:
+            ui.result_table.clearContents()
+            ui.result_table.setRowCount(0)
+            err_print(ui, e)
+
 
 def db_connect():
     """
@@ -320,8 +391,8 @@ def main():
     if Cursor:
         try:
             app = QApplication(sys.argv)
-            window = Main(Connect_obj, Cursor)
-            window.main_ui.ui.show()
+            Window = Main(Connect_obj, Cursor)
+            Window.main_ui.ui.show()
             app.exec_()
         except Exception as e:
             print(e)

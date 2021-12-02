@@ -26,6 +26,9 @@ class query_result_ui:
         qfile.close()
         self.ui = QUiLoader().load(qfile)
 
+        # self.ui.result_table.insertRow(0)
+        # self.ui.result_table.setCellWidget(0, 0, QPushButton('test'))
+
     def change_information(self, date, departure, destination):
         """
         修改标签
