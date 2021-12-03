@@ -71,7 +71,7 @@ class Main:
         self.seat_choose_ui.ui.confirm_btn.clicked.connect(self.seat_choose_confirm)
 
     """
-    界面切换函数
+    主要的界面切换函数
     """
 
     # main ui
@@ -455,6 +455,7 @@ class Main:
         if self.login_status:
             print(result)
             self.query_result_login_ui.ui.close()
+            self.seat_choose_ui.get_result(result)
             self.seat_choose_ui.ui.show()
         else:
             QMessageBox.information(self.query_result_ui.ui, '提示', '登录后才可以订票')
