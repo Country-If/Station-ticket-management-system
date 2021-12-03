@@ -42,6 +42,11 @@ class query_result_login_ui:
         self.ui.destination_label.setText(destination)
 
     def clear_table(self):
+        """
+        清空表格
+
+        :return: None
+        """
         self.ui.result_table.clearContents()  # 清空表格内容
         self.ui.result_table.setRowCount(0)  # 清空表格栏
 
