@@ -154,8 +154,6 @@ class Main:
 
         :return: None
         """
-        # self.query_result_ui.ui.result_table.clearContents()  # 清空表格内容
-        # self.query_result_ui.ui.result_table.setRowCount(0)  # 清空表格栏
         self.query_result_ui.clear_table()
         self.query_result_ui.ui.close()
         self.register_ui.ui.show()
@@ -166,8 +164,6 @@ class Main:
 
         :return: None
         """
-        # self.query_result_ui.ui.result_table.clearContents()  # 清空表格内容
-        # self.query_result_ui.ui.result_table.setRowCount(0)  # 清空表格栏
         self.query_result_ui.clear_table()
         self.query_result_ui.ui.close()
         self.login_ui.ui.show()
@@ -179,8 +175,6 @@ class Main:
 
         :return: None
         """
-        # self.query_result_login_ui.ui.result_table.clearContents()  # 清空表格内容
-        # self.query_result_login_ui.ui.result_table.setRowCount(0)  # 清空表格栏
         self.query_result_login_ui.clear_table()
         self.query_result_login_ui.ui.close()
         self.main_ui.ui.show()
@@ -452,8 +446,13 @@ class Main:
         return btn
 
     def booking(self, result):
+        """
+        订票，切换座位选择界面
+
+        :param result: 数据库查询结果
+        :return: None
+        """
         if self.login_status:
-            print(result)
             self.query_result_login_ui.ui.close()
             self.seat_choose_ui.get_result(result)
             self.seat_choose_ui.ui.show()
@@ -461,7 +460,36 @@ class Main:
             QMessageBox.information(self.query_result_ui.ui, '提示', '登录后才可以订票')
 
     def seat_choose_confirm(self):
-        pass
+        # ('K7722', datetime.timedelta(seconds=72505), datetime.timedelta(seconds=79705), 160, 800)
+        result = self.seat_choose_ui.result
+        if self.seat_choose_ui.rank_chosen == "" or self.seat_choose_ui.location_chosen == "":
+            err_print(self.seat_choose_ui.ui, '请勾选必需选项')
+        else:
+            if result[-1] + result[-2] == 0:    # 无票
+                QMessageBox.critical(self.seat_choose_ui.ui, '订票失败', '该车次已无票')
+            elif result[-2] == 0 and self.seat_choose_ui.rank_chosen == '一等座':  # 一等座无票
+                choice = QMessageBox.question(self.seat_choose_ui.ui, '确认', '该车次一等座已无票，若仍需订票请点击Yes，若放弃订票请点击No')
+                if choice == QMessageBox.Yes:
+                    self.seat_choose_ui.ui.close()
+                    self.query_result_login_ui.ui.show()
+                    return
+                elif choice == QMessageBox.No:
+                    pass
+            elif result[-1] == 0 and self.seat_choose_ui.rank_chosen == '二等座':  # 二等座无票
+                choice = QMessageBox.question(self.seat_choose_ui.ui, '确认', '该车次二等座已无票，若仍需订票请点击Yes，若放弃订票请点击No')
+                if choice == QMessageBox.Yes:
+                    self.seat_choose_ui.ui.close()
+                    self.query_result_login_ui.ui.show()
+                    return
+                elif choice == QMessageBox.No:
+                    pass
+            else:
+                sql = r"select seat_id from seat_information where train_id='%s' and `rank`='%s' and is_used=0;" \
+                      % (result[0], self.seat_choose_ui.rank_chosen)
+                print(sql)
+            self.query_result_login_ui.clear_table()    # 记得将query_result_login_ui的表格清空
+            self.seat_choose_ui.ui.close()
+            self.user_center_ui.ui.show()
 
 
 def db_connect():
