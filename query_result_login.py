@@ -41,6 +41,10 @@ class query_result_login_ui:
         self.ui.departure_label.setText(departure)
         self.ui.destination_label.setText(destination)
 
+    def clear_table(self):
+        self.ui.result_table.clearContents()  # 清空表格内容
+        self.ui.result_table.setRowCount(0)  # 清空表格栏
+
 
 if __name__ == '__main__':
     Connect = pymysql.connect(host='localhost', user='root', password='root', database='ticket_management_system',
