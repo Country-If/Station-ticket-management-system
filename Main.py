@@ -10,6 +10,9 @@ from login import login_ui
 from query import query_ui
 from query_result import query_result_ui
 from query_result_login import query_result_login_ui
+from user_center import user_center_ui
+from booking_query import booking_query_ui
+from seat_choose import seat_choose_ui
 
 
 class Main:
@@ -33,6 +36,9 @@ class Main:
         self.query_ui = query_ui()
         self.query_result_ui = query_result_ui(self.connect_obj, self.cursor)
         self.query_result_login_ui = query_result_login_ui(self.connect_obj, self.cursor)
+        self.user_center_ui = user_center_ui()
+        self.booking_query_ui = booking_query_ui()
+        self.seat_choose_ui = seat_choose_ui()
 
         # 信号与槽连接
         self.main_ui.ui.register_btn.clicked.connect(self.main_to_register)
@@ -54,6 +60,15 @@ class Main:
         self.query_result_ui.ui.back_btn.clicked.connect(self.query_result_back)
         self.query_result_ui.ui.login_btn.clicked.connect(self.query_result_to_login)
         self.query_result_ui.ui.register_btn.clicked.connect(self.query_result_to_register)
+
+        self.user_center_ui.ui.info_query_btn.clicked.connect(self.user_center_to_query)
+        self.user_center_ui.ui.booking_query_btn.clicked.connect(self.user_center_to_booking_query)
+        self.user_center_ui.ui.logout_btn.clicked.connect(self.user_center_logout)
+
+        self.booking_query_ui.ui.back_btn.clicked.connect(self.booking_query_back)
+
+        self.seat_choose_ui.ui.back_btn.clicked.connect(self.seat_choose_back)
+        self.seat_choose_ui.ui.confirm_btn.clicked.connect(self.seat_choose_confirm)
 
     """
     界面切换函数
@@ -114,8 +129,13 @@ class Main:
 
         :return: None
         """
-        self.query_ui.ui.close()
-        self.main_ui.ui.show()
+        # 若已登录则切换到个人中心界面
+        if self.login_status:
+            self.query_ui.ui.close()
+            self.user_center_ui.ui.show()
+        else:
+            self.query_ui.ui.close()
+            self.main_ui.ui.show()
 
     # query result ui
     def query_result_back(self):
@@ -124,8 +144,7 @@ class Main:
 
         :return: None
         """
-        self.query_result_ui.ui.result_table.clearContents()  # 清空表格内容
-        self.query_result_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        self.query_result_ui.clear_table()
         self.query_result_ui.ui.close()
         self.main_ui.ui.show()
 
@@ -135,8 +154,9 @@ class Main:
 
         :return: None
         """
-        self.query_result_ui.ui.result_table.clearContents()  # 清空表格内容
-        self.query_result_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        # self.query_result_ui.ui.result_table.clearContents()  # 清空表格内容
+        # self.query_result_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        self.query_result_ui.clear_table()
         self.query_result_ui.ui.close()
         self.register_ui.ui.show()
 
@@ -146,8 +166,9 @@ class Main:
 
         :return: None
         """
-        self.query_result_ui.ui.result_table.clearContents()  # 清空表格内容
-        self.query_result_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        # self.query_result_ui.ui.result_table.clearContents()  # 清空表格内容
+        # self.query_result_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        self.query_result_ui.clear_table()
         self.query_result_ui.ui.close()
         self.login_ui.ui.show()
 
@@ -158,22 +179,72 @@ class Main:
 
         :return: None
         """
-        self.query_result_login_ui.ui.result_table.clearContents()  # 清空表格内容
-        self.query_result_login_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        # self.query_result_login_ui.ui.result_table.clearContents()  # 清空表格内容
+        # self.query_result_login_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        self.query_result_login_ui.clear_table()
         self.query_result_login_ui.ui.close()
         self.main_ui.ui.show()
 
     def query_result_login_logout(self):
         """
-        注销
+        登录后查询结果界面注销
 
         :return: None
         """
         self.login_status = False
-        self.query_result_login_ui.ui.result_table.clearContents()  # 清空表格内容
-        self.query_result_login_ui.ui.result_table.setRowCount(0)  # 清空表格栏
+        self.query_result_login_ui.clear_table()
         self.query_result_login_ui.ui.close()
         self.main_ui.ui.show()
+
+    # user center ui
+    def user_center_to_query(self):
+        """
+        个人中心界面前往查询
+
+        :return: None
+        """
+        self.user_center_ui.ui.close()
+        self.query_ui.ui.show()
+
+    def user_center_to_booking_query(self):
+        """
+        个人中心界面前往订单查询界面
+
+        :return: None
+        """
+        self.user_center_ui.ui.close()
+        self.booking_query_ui.setUsername(self.username)
+        self.booking_query_ui.ui.show()
+
+    def user_center_logout(self):
+        """
+        个人中心界面注销
+
+        :return: None
+        """
+        self.login_status = False
+        self.user_center_ui.ui.close()
+        self.main_ui.ui.show()
+
+    # booking query ui
+    def booking_query_back(self):
+        """
+        订单查询界面返回
+
+        :return: None
+        """
+        self.booking_query_ui.ui.close()
+        self.user_center_ui.ui.show()
+
+    # seat choose ui
+    def seat_choose_back(self):
+        """
+        座位选择界面返回
+
+        :return: None
+        """
+        self.seat_choose_ui.ui.close()
+        self.query_result_login_ui.ui.show()
 
     """
     功能处理函数
@@ -210,7 +281,8 @@ class Main:
                     self.login_status = True
                     # 切换界面
                     self.login_ui.ui.close()
-                    self.query_ui.ui.show()
+                    self.user_center_ui.set_username(self.username)
+                    self.user_center_ui.ui.show()
                 else:
                     QMessageBox.critical(self.login_ui.ui, '登录失败', '用户名或密码错误')
             except Exception as e:
@@ -299,22 +371,22 @@ class Main:
                     if self.login_status:
                         self.query_result_login_ui.change_information(self.username, date, departure, destination)
                         self.query_result_login_ui.ui.show()
-                        self.table_load_data(self.query_result_login_ui.ui, departure, destination, date)
+                        self.table_load_data(self.query_result_login_ui, departure, destination, date)
                     else:
                         self.query_result_ui.change_information(date, departure, destination)
                         self.query_result_ui.ui.show()
-                        self.table_load_data(self.query_result_ui.ui, departure, destination, date)
+                        self.table_load_data(self.query_result_ui, departure, destination, date)
                 else:
                     QMessageBox.information(self.query_ui.ui, '提示',
                                             '可选日期为：' + str([d[0].strftime("%Y-%m-%d") for d in result]))
         except Exception as e:
             err_print(self.query_ui.ui, e)
 
-    def table_load_data(self, ui, departure, destination, date):
+    def table_load_data(self, obj, departure, destination, date):
         """
         表格中加载数据及按钮
 
-        :param ui: 加载的界面
+        :param obj: 加载的界面对象
         :param departure: 始发站
         :param destination: 终点站
         :param date: 日期
@@ -355,19 +427,18 @@ class Main:
                 raise ValueError("查询不到数据")
             # 插入数据
             for row in range(len(result)):  # 逐行
-                ui.result_table.insertRow(row)  # 新增一行
+                obj.ui.result_table.insertRow(row)  # 新增一行
                 for col in range(len(result[0]) + 1):  # 逐列
                     if col == len(result[0]):  # 表格最后一列，添加按钮
-                        ui.result_table.setCellWidget(row, col, self.buttonForRow(result[row]))
+                        obj.ui.result_table.setCellWidget(row, col, self.buttonForRow(result[row]))
                     else:
                         item = QTableWidgetItem(str(result[row][col]))
                         item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
                         item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
-                        ui.result_table.setItem(row, col, item)
+                        obj.ui.result_table.setItem(row, col, item)
         except Exception as e:
-            ui.result_table.clearContents()  # 清空表格内容
-            ui.result_table.setRowCount(0)  # 清空表格栏
-            err_print(ui, e)
+            obj.clear_table()
+            err_print(obj.ui, e)
 
     def buttonForRow(self, result):
         """
@@ -383,8 +454,13 @@ class Main:
     def booking(self, result):
         if self.login_status:
             print(result)
+            self.query_result_login_ui.ui.close()
+            self.seat_choose_ui.ui.show()
         else:
             QMessageBox.information(self.query_result_ui.ui, '提示', '登录后才可以订票')
+
+    def seat_choose_confirm(self):
+        pass
 
 
 def db_connect():
