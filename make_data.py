@@ -90,6 +90,7 @@ def make_data_seat(Connect, Cursor, train_id_list):
     """
     row_num = 3
     col_num = 4
+    seat_num_per_train = 48
     seat_id_list = []
     rank_list = []
     high_list = []
@@ -117,17 +118,20 @@ def make_data_seat(Connect, Cursor, train_id_list):
     print(rank_list)
     print(price_list)
     # 插入数据库
-    for train_id in train_id_list:
-        for i in range(len(seat_id_list)):
-            sql = r"insert into seat_information values ('%s', '%s', '%s', '%s', '%s');" \
-                  % (train_id, seat_id_list[i], rank_list[i], price_list[i], 0)
-            try:
-                Cursor.execute(sql)
-                Connect.commit()
-            except Exception as e:
-                print(sql)
-                print(e)
-                Connect.rollback()
+    j = 0
+    for i in range(len(seat_id_list)):
+        train_id = train_id_list[j]
+        sql = r"insert into seat_information values ('%s', '%s', '%s', '%s', '%s');" \
+              % (train_id, seat_id_list[i], rank_list[i], price_list[i], 0)
+        try:
+            Cursor.execute(sql)
+            Connect.commit()
+            if (i + 1) % seat_num_per_train == 0:
+                j += 1
+        except Exception as e:
+            print(sql)
+            print(e)
+            Connect.rollback()
 
 
 if __name__ == '__main__':
