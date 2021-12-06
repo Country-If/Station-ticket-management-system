@@ -424,7 +424,7 @@ class Main:
                 obj.ui.result_table.insertRow(row)  # 新增一行
                 for col in range(len(result[0]) + 1):  # 逐列
                     if col == len(result[0]):  # 表格最后一列，添加按钮
-                        obj.ui.result_table.setCellWidget(row, col, self.buttonForRow(result[row]))
+                        obj.ui.result_table.setCellWidget(row, col, self.buttonForRow(result[row], date))
                     else:
                         item = QTableWidgetItem(str(result[row][col]))
                         item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
@@ -434,27 +434,29 @@ class Main:
             obj.clear_table()
             err_print(obj.ui, e)
 
-    def buttonForRow(self, result):
+    def buttonForRow(self, result, date):
         """
         每行表格最后一列添加按钮
 
         :param result: 数据库查询结果
+        :param date: 日期
         :return: QPushButton
         """
         btn = QPushButton('订票')
-        btn.clicked.connect(lambda: self.booking(result))
+        btn.clicked.connect(lambda: self.booking(result, date))
         return btn
 
-    def booking(self, result):
+    def booking(self, result, date):
         """
         订票，切换座位选择界面
 
         :param result: 数据库查询结果
+        :param date: 日期
         :return: None
         """
         if self.login_status:
             self.query_result_login_ui.ui.close()
-            self.seat_choose_ui.get_result(result)
+            self.seat_choose_ui.get_information(result, date)
             self.seat_choose_ui.ui.show()
         else:
             QMessageBox.information(self.query_result_ui.ui, '提示', '登录后才可以订票')
@@ -462,10 +464,11 @@ class Main:
     def seat_choose_confirm(self):
         # ('K7722', datetime.timedelta(seconds=72505), datetime.timedelta(seconds=79705), 160, 800)
         result = self.seat_choose_ui.result
-        if self.seat_choose_ui.rank_chosen == "" or self.seat_choose_ui.location_chosen == "":
+        date = self.seat_choose_ui.date
+        if self.seat_choose_ui.rank_chosen == "" or self.seat_choose_ui.location_chosen == "":  # 勾选不完整
             err_print(self.seat_choose_ui.ui, '请勾选必需选项')
         else:
-            if result[-1] + result[-2] == 0:    # 无票
+            if result[-1] + result[-2] == 0:  # 无票
                 QMessageBox.critical(self.seat_choose_ui.ui, '订票失败', '该车次已无票')
             elif result[-2] == 0 and self.seat_choose_ui.rank_chosen == '一等座':  # 一等座无票
                 choice = QMessageBox.question(self.seat_choose_ui.ui, '确认', '该车次一等座已无票，若仍需订票请点击Yes，若放弃订票请点击No')
@@ -486,8 +489,65 @@ class Main:
             else:
                 sql = r"select seat_id from seat_information where train_id='%s' and `rank`='%s' and is_used=0;" \
                       % (result[0], self.seat_choose_ui.rank_chosen)
-                print(sql)
-            self.query_result_login_ui.clear_table()    # 记得将query_result_login_ui的表格清空
+                try:
+                    self.cursor.execute(sql)
+                    seat_id_tuple = self.cursor.fetchall()
+                    for seat_id in seat_id_tuple:
+                        # 用户选取的座位位置有票
+                        if self.seat_choose_ui.location_chosen in seat_id[0]:
+                            sql_query = r"select `rank`,`price` from seat_information where `train_id`='%s' and `seat_id`='%s';" \
+                                        % (result[0], seat_id[0])
+                            try:
+                                self.cursor.execute(sql_query)
+                                rank_price = self.cursor.fetchall()  # 获取座位等级和价格
+                                sql_update = r"update seat_information set `is_used`=1 where `train_id`='%s' and `seat_id`='%s';" \
+                                             % (result[0], seat_id[0])
+                                sql_insert = r"insert into booking_information " \
+                                             r"(`user_name`,`train_id`,`seat_id`,`date`,`departure_time`,`rank`,`price`) " \
+                                             r"values ('%s','%s','%s','%s','%s','%s','%s');" \
+                                             % (self.username, result[0], seat_id[0], date, result[1], rank_price[0][0],
+                                                rank_price[0][1])
+                                try:
+                                    self.cursor.execute(sql_update)  # 修改对应座位的占用标识
+                                    self.connect_obj.commit()
+                                    self.cursor.execute(sql_insert)  # 插入购票表
+                                    self.connect_obj.commit()
+                                except Exception as e:
+                                    self.connect_obj.rollback()
+                                    err_print(self.seat_choose_ui.ui, e)
+                            except Exception as e:
+                                err_print(self.seat_choose_ui.ui, e)
+                            break
+                        # 用户选取的座位位置无票
+                        seat_id = seat_id_tuple[0]  # 取tuple中第一个位置
+                        sql_query = r"select `rank`,`price` from seat_information where `train_id`='%s' and `seat_id`='%s';" \
+                                    % (result[0], seat_id[0])
+
+                        try:
+                            self.cursor.execute(sql_query)
+                            rank_price = self.cursor.fetchall()  # 获取座位等级和价格
+                            sql_update = r"update seat_information set `is_used`=1 where `train_id`='%s' and `seat_id`='%s';" \
+                                         % (result[0], seat_id[0])
+                            sql_insert = r"insert into booking_information " \
+                                         r"(`user_name`,`train_id`,`seat_id`,`date`,`departure_time`,`rank`,`price`) " \
+                                         r"values ('%s','%s','%s','%s','%s','%s','%s');" \
+                                         % (self.username, result[0], seat_id[0], date, result[1], rank_price[0][0],
+                                            rank_price[0][1])
+                            try:
+                                self.cursor.execute(sql_update)  # 修改对应座位的占用标识
+                                self.connect_obj.commit()
+                                self.cursor.execute(sql_insert)  # 插入购票表
+                                self.connect_obj.commit()
+                                QMessageBox.information(self.seat_choose_ui.ui, '提示',
+                                                        '所选位置无票，系统已为你选取座位：' + str(seat_id))
+                            except Exception as e:
+                                self.connect_obj.rollback()
+                                err_print(self.seat_choose_ui.ui, e)
+                        except Exception as e:
+                            err_print(self.seat_choose_ui.ui, e)
+                except Exception as e:
+                    err_print(self.seat_choose_ui.ui, e)
+            self.query_result_login_ui.clear_table()  # 记得将query_result_login_ui的表格清空
             self.seat_choose_ui.ui.close()
             self.user_center_ui.ui.show()
 

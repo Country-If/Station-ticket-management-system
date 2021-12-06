@@ -21,6 +21,7 @@ class seat_choose_ui:
         self.ui = QUiLoader().load(qfile)
 
         self.result = ""
+        self.date = ""
         self.rank_chosen = ""
         self.location_chosen = ""
 
@@ -38,14 +39,16 @@ class seat_choose_ui:
         self.ui.location_btn_group.addButton(self.ui.f_rbtn)
         self.ui.location_btn_group.buttonClicked.connect(self.location_choose)
 
-    def get_result(self, result):
+    def get_information(self, result, date):
         """
         获取数据库查询结果
 
         :param result: 数据库查询结果
+        :param date: 日期
         :return: None
         """
         self.result = result
+        self.date = date
 
     def rank_choose(self):
         """
