@@ -53,6 +53,8 @@ class Main:
 
         self.query_ui.ui.back_btn.clicked.connect(self.query_back)
         self.query_ui.ui.query_btn.clicked.connect(self.query)
+        self.query_ui.ui.departure_label.returnPressed.connect(self.query)
+        self.query_ui.ui.destination_label.returnPressed.connect(self.query)
 
         self.query_result_login_ui.ui.back_btn.clicked.connect(self.query_result_login_back)
         self.query_result_login_ui.ui.logout_btn.clicked.connect(self.query_result_login_logout)
@@ -178,7 +180,7 @@ class Main:
         """
         self.query_result_login_ui.clear_table()
         self.query_result_login_ui.ui.close()
-        self.main_ui.ui.show()
+        self.user_center_ui.ui.show()
 
     def query_result_login_logout(self):
         """
@@ -635,7 +637,7 @@ class Main:
             QMessageBox.information(self.booking_query_ui.ui, '提示', '退票成功')
             # 重新加载，更新数据
             self.booking_query_ui.clear_table()
-            self.booking_query_table_load_data(self.username)
+            self.booking_query_table_load_data()
         except Exception as e:
             self.connect_obj.rollback()
             err_print(self.booking_query_ui.ui, e)
@@ -707,5 +709,5 @@ def run_local():
 
 
 if __name__ == '__main__':
-    run_local()
-    # main()
+    # run_local()
+    main()
