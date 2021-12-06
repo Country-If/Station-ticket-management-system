@@ -462,12 +462,18 @@ class Main:
             QMessageBox.information(self.query_result_ui.ui, '提示', '登录后才可以订票')
 
     def seat_choose_confirm(self):
-        # ('K7722', datetime.timedelta(seconds=72505), datetime.timedelta(seconds=79705), 160, 800)
+        """
+        座位选择界面的确定按钮处理函数
+
+        :return: None
+        """
         result = self.seat_choose_ui.result
         date = self.seat_choose_ui.date
+        # 判断按钮勾选是否完整
         if self.seat_choose_ui.rank_chosen == "" or self.seat_choose_ui.location_chosen == "":  # 勾选不完整
             err_print(self.seat_choose_ui.ui, '请勾选必需选项')
         else:
+            # 判断座位的票数是否符合需求
             if result[-1] + result[-2] == 0:  # 无票
                 QMessageBox.critical(self.seat_choose_ui.ui, '订票失败', '该车次已无票')
             elif result[-2] == 0 and self.seat_choose_ui.rank_chosen == '一等座':  # 一等座无票
@@ -486,7 +492,7 @@ class Main:
                     return
                 elif choice == QMessageBox.No:
                     pass
-            else:
+            else:   # 余票满足要求
                 sql = r"select seat_id from seat_information where train_id='%s' and `rank`='%s' and is_used=0;" \
                       % (result[0], self.seat_choose_ui.rank_chosen)
                 try:
