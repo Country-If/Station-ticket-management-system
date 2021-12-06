@@ -66,6 +66,7 @@ class Main:
         self.user_center_ui.ui.logout_btn.clicked.connect(self.user_center_logout)
 
         self.booking_query_ui.ui.back_btn.clicked.connect(self.booking_query_back)
+        self.booking_query_ui.ui.logout_btn.clicked.connect(self.booking_query_logout)
 
         self.seat_choose_ui.ui.back_btn.clicked.connect(self.seat_choose_back)
         self.seat_choose_ui.ui.confirm_btn.clicked.connect(self.seat_choose_confirm)
@@ -209,6 +210,7 @@ class Main:
         self.user_center_ui.ui.close()
         self.booking_query_ui.setUsername(self.username)
         self.booking_query_ui.ui.show()
+        self.booking_query_table_load_data()
 
     def user_center_logout(self):
         """
@@ -227,8 +229,20 @@ class Main:
 
         :return: None
         """
+        self.booking_query_ui.clear_table()
         self.booking_query_ui.ui.close()
         self.user_center_ui.ui.show()
+
+    def booking_query_logout(self):
+        """
+        订单查询结果界面注销
+
+        :return: None
+        """
+        self.login_status = False
+        self.booking_query_ui.clear_table()
+        self.booking_query_ui.ui.close()
+        self.main_ui.ui.show()
 
     # seat choose ui
     def seat_choose_back(self):
@@ -365,18 +379,18 @@ class Main:
                     if self.login_status:
                         self.query_result_login_ui.change_information(self.username, date, departure, destination)
                         self.query_result_login_ui.ui.show()
-                        self.table_load_data(self.query_result_login_ui, departure, destination, date)
+                        self.query_result_table_load_data(self.query_result_login_ui, departure, destination, date)
                     else:
                         self.query_result_ui.change_information(date, departure, destination)
                         self.query_result_ui.ui.show()
-                        self.table_load_data(self.query_result_ui, departure, destination, date)
+                        self.query_result_table_load_data(self.query_result_ui, departure, destination, date)
                 else:
                     QMessageBox.information(self.query_ui.ui, '提示',
                                             '可选日期为：' + str([d[0].strftime("%Y-%m-%d") for d in result]))
         except Exception as e:
             err_print(self.query_ui.ui, e)
 
-    def table_load_data(self, obj, departure, destination, date):
+    def query_result_table_load_data(self, obj, departure, destination, date):
         """
         表格中加载数据及按钮
 
@@ -424,9 +438,12 @@ class Main:
                 obj.ui.result_table.insertRow(row)  # 新增一行
                 for col in range(len(result[0]) + 1):  # 逐列
                     if col == len(result[0]):  # 表格最后一列，添加按钮
-                        obj.ui.result_table.setCellWidget(row, col, self.buttonForRow(result[row], date))
+                        obj.ui.result_table.setCellWidget(row, col, self.query_result_buttonForRow(result[row], date))
                     else:
-                        item = QTableWidgetItem(str(result[row][col]))
+                        if result[row][col] is None:
+                            item = QTableWidgetItem(str(0))
+                        else:
+                            item = QTableWidgetItem(str(result[row][col]))
                         item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
                         item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
                         obj.ui.result_table.setItem(row, col, item)
@@ -434,7 +451,7 @@ class Main:
             obj.clear_table()
             err_print(obj.ui, e)
 
-    def buttonForRow(self, result, date):
+    def query_result_buttonForRow(self, result, date):
         """
         每行表格最后一列添加按钮
 
@@ -467,6 +484,7 @@ class Main:
 
         :return: None
         """
+        flag = False  # 订票成功标志
         result = self.seat_choose_ui.result
         date = self.seat_choose_ui.date
         # 判断按钮勾选是否完整
@@ -474,9 +492,9 @@ class Main:
             err_print(self.seat_choose_ui.ui, '请勾选必需选项')
         else:
             # 判断座位的票数是否符合需求
-            if result[-1] + result[-2] == 0:  # 无票
+            if result[-1] is None and result[-2] is None:  # 无票
                 QMessageBox.critical(self.seat_choose_ui.ui, '订票失败', '该车次已无票')
-            elif result[-2] == 0 and self.seat_choose_ui.rank_chosen == '一等座':  # 一等座无票
+            elif result[-2] is None and self.seat_choose_ui.rank_chosen == '一等座':  # 一等座无票
                 choice = QMessageBox.question(self.seat_choose_ui.ui, '确认', '该车次一等座已无票，若仍需订票请点击Yes，若放弃订票请点击No')
                 if choice == QMessageBox.Yes:
                     self.seat_choose_ui.ui.close()
@@ -484,7 +502,7 @@ class Main:
                     return
                 elif choice == QMessageBox.No:
                     pass
-            elif result[-1] == 0 and self.seat_choose_ui.rank_chosen == '二等座':  # 二等座无票
+            elif result[-1] is None and self.seat_choose_ui.rank_chosen == '二等座':  # 二等座无票
                 choice = QMessageBox.question(self.seat_choose_ui.ui, '确认', '该车次二等座已无票，若仍需订票请点击Yes，若放弃订票请点击No')
                 if choice == QMessageBox.Yes:
                     self.seat_choose_ui.ui.close()
@@ -492,7 +510,7 @@ class Main:
                     return
                 elif choice == QMessageBox.No:
                     pass
-            else:   # 余票满足要求
+            else:  # 余票满足要求
                 sql = r"select seat_id from seat_information where train_id='%s' and `rank`='%s' and is_used=0;" \
                       % (result[0], self.seat_choose_ui.rank_chosen)
                 try:
@@ -518,17 +536,19 @@ class Main:
                                     self.connect_obj.commit()
                                     self.cursor.execute(sql_insert)  # 插入购票表
                                     self.connect_obj.commit()
+                                    flag = True
+                                    QMessageBox.information(self.seat_choose_ui.ui, '提示', '订票成功，座位为：' + str(seat_id[0]))
+                                    break
                                 except Exception as e:
                                     self.connect_obj.rollback()
                                     err_print(self.seat_choose_ui.ui, e)
                             except Exception as e:
                                 err_print(self.seat_choose_ui.ui, e)
-                            break
-                        # 用户选取的座位位置无票
+                    # 用户选取的座位位置无票
+                    if not flag:
                         seat_id = seat_id_tuple[0]  # 取tuple中第一个位置
                         sql_query = r"select `rank`,`price` from seat_information where `train_id`='%s' and `seat_id`='%s';" \
                                     % (result[0], seat_id[0])
-
                         try:
                             self.cursor.execute(sql_query)
                             rank_price = self.cursor.fetchall()  # 获取座位等级和价格
@@ -545,7 +565,7 @@ class Main:
                                 self.cursor.execute(sql_insert)  # 插入购票表
                                 self.connect_obj.commit()
                                 QMessageBox.information(self.seat_choose_ui.ui, '提示',
-                                                        '所选位置无票，系统已为你选取座位：' + str(seat_id))
+                                                        '所选位置无票，系统已为你选取座位：' + str(seat_id[0]))
                             except Exception as e:
                                 self.connect_obj.rollback()
                                 err_print(self.seat_choose_ui.ui, e)
@@ -556,6 +576,69 @@ class Main:
             self.query_result_login_ui.clear_table()  # 记得将query_result_login_ui的表格清空
             self.seat_choose_ui.ui.close()
             self.user_center_ui.ui.show()
+
+    def booking_query_table_load_data(self):
+        """
+        订单查询界面加载表格数据
+
+        :return: None
+        """
+        sql = r"select booking_id,train_id,seat_id,date,departure_time,`rank`,price from booking_information where user_name='%s' and is_deleted=0;" % self.username
+        try:
+            # 数据库查询数据
+            self.cursor.execute(sql)
+            result = self.cursor.fetchall()
+            # 插入数据
+            for row in range(len(result)):  # 逐行
+                self.booking_query_ui.ui.result_table.insertRow(row)  # 新增一行
+                for col in range(len(result[0]) + 1):  # 逐列
+                    if col == len(result[0]):  # 表格最后一列，添加按钮
+                        self.booking_query_ui.ui.result_table.setCellWidget(row, col, self.booking_query_buttonForRow(
+                            result[row]))
+                    else:
+                        item = QTableWidgetItem(str(result[row][col]))
+                        item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
+                        item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
+                        self.booking_query_ui.ui.result_table.setItem(row, col, item)
+        except Exception as e:
+            err_print(self.booking_query_ui.ui, e)
+
+    def booking_query_buttonForRow(self, result):
+        """
+        每行表格最后一列添加按钮
+
+        :param result: 数据库查询结果
+        :return: QPushButton
+        """
+        btn = QPushButton('退票')
+        btn.clicked.connect(lambda: self.refund(result))
+        return btn
+
+    def refund(self, result):
+        """
+        处理退票
+
+        :param result: 数据库查询结果
+        :return: None
+        """
+        booking_id = result[0]
+        train_id = result[1]
+        seat_id = result[2]
+        sql_update_booking = r"update booking_information set `is_deleted`=1 where `booking_id`='%s'" % booking_id
+        sql_update_seat = r"update seat_information set `is_used`=0 where `train_id`='%s' and `seat_id`='%s'" \
+                          % (train_id, seat_id)
+        try:
+            self.cursor.execute(sql_update_booking)
+            self.connect_obj.commit()
+            self.cursor.execute(sql_update_seat)
+            self.connect_obj.commit()
+            QMessageBox.information(self.booking_query_ui.ui, '提示', '退票成功')
+            # 重新加载，更新数据
+            self.booking_query_ui.clear_table()
+            self.booking_query_table_load_data(self.username)
+        except Exception as e:
+            self.connect_obj.rollback()
+            err_print(self.booking_query_ui.ui, e)
 
 
 def db_connect():
