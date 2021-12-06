@@ -23,6 +23,15 @@ class booking_query_ui:
     def setUsername(self, username):
         self.ui.username_label.setText(username)
 
+    def clear_table(self):
+        """
+        清空表格
+
+        :return: None
+        """
+        self.ui.result_table.clearContents()  # 清空表格内容
+        self.ui.result_table.setRowCount(0)  # 清空表格栏
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
