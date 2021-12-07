@@ -277,7 +277,7 @@ class Main:
             QMessageBox.critical(self.login_ui.ui, '错误', '密码不能为空')
         else:
             # 执行SQL语句
-            sql = r"select * from user_information where user_name='%s' and password='%s'" \
+            sql = r"select * from user_information where user_name='%s' and password='%s';" \
                   % (self.username, password)
             try:
                 self.cursor.execute(sql)
@@ -418,7 +418,7 @@ class Main:
         #       r"(select `train_id` from `train_information` " \
         #       r"where `departure`='%s' and `destination`='%s' and `date`='%s') " \
         #       r"and `rank`='二等座' and `is_used`=0 group by `rank`) b " \
-        #       r"where `departure`='%s' and `destination`='%s' and `date`='%s'" \
+        #       r"where `departure`='%s' and `destination`='%s' and `date`='%s';" \
         #       % (departure, destination, date, departure, destination, date, departure, destination, date)
 
         sql = r"SELECT a.train_id,a.departure_time,a.arrival_time,b.first_left,c.second_left " \
@@ -626,8 +626,8 @@ class Main:
         booking_id = result[0]
         train_id = result[1]
         seat_id = result[2]
-        sql_update_booking = r"update booking_information set `is_deleted`=1 where `booking_id`='%s'" % booking_id
-        sql_update_seat = r"update seat_information set `is_used`=0 where `train_id`='%s' and `seat_id`='%s'" \
+        sql_update_booking = r"update booking_information set `is_deleted`=1 where `booking_id`='%s';" % booking_id
+        sql_update_seat = r"update seat_information set `is_used`=0 where `train_id`='%s' and `seat_id`='%s';" \
                           % (train_id, seat_id)
         try:
             self.cursor.execute(sql_update_booking)
