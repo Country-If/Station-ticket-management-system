@@ -58,12 +58,12 @@ def make_data_train(Connect, Cursor):
         t = random.randint(start, end)
         date_touple = time.localtime(t)
         date_list.append(time.strftime("%Y-%m-%d", date_touple))
-        departure_time_list.append(time.strftime("%H:%M:%S", date_touple))
+        departure_time_list.append(time.strftime("%H:%M", date_touple))
     print(date_list)
     print(departure_time_list)
     for departure_time in departure_time_list:
-        arrival_time_list.append((datetime.datetime.strptime(departure_time, "%H:%M:%S")
-                                  + datetime.timedelta(minutes=random.randint(60, 250))).strftime("%H:%M:%S"))
+        arrival_time_list.append((datetime.datetime.strptime(departure_time, "%H:%M")
+                                  + datetime.timedelta(minutes=random.randint(60, 250))).strftime("%H:%M"))
     print(arrival_time_list)
     # 插入数据库
     for i in range(num):
