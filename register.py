@@ -51,17 +51,27 @@ class register_ui:
         elif password != confirm_passwd:
             QMessageBox.critical(self.ui, '错误', '两次输入的密码不同！')
         else:
-            # 执行SQL语句
-            sql = r"insert into user_information(user_name, password, target) values('%s', '%s', '%s');" \
-                  % (username, password, '0')
+            # 查询用户名判断是否重复
+            sql_query = r"select user_name from user_information where `user_name`='%s';" % username
             try:
-                self.cursor.execute(sql)
-                self.connect_obj.commit()
-                QMessageBox.information(self.ui, '注册成功', '请前往登录界面')
-                self.clear()
+                self.cursor.execute(sql_query)
+                result = self.cursor.fetchall()
+                if len(result) != 0:
+                    QMessageBox.critical(self.ui, '注册失败', '用户名重复，请重新选取用户名')
+                else:
+                    # 插入数据库
+                    sql = r"insert into user_information(user_name, password) values('%s', '%s');" \
+                          % (username, password)
+                    try:
+                        self.cursor.execute(sql)
+                        self.connect_obj.commit()
+                        QMessageBox.information(self.ui, '注册成功', '请前往登录界面')
+                        self.clear()
+                    except Exception as e:
+                        err_print(self.ui, e)
+                        self.connect_obj.rollback()
             except Exception as e:
                 err_print(self.ui, e)
-                self.connect_obj.rollback()
 
     def clear(self):
         """
