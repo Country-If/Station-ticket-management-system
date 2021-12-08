@@ -283,14 +283,11 @@ class Main:
         self.management_ui.ui.close()
         self.main_ui.ui.show()
 
-    def management_to_insert(self):
-        pass
-
     def management_to_delete(self):
         pass
 
     """
-    功能处理函数
+    主要功能处理函数
     """
 
     def login(self):
@@ -488,18 +485,6 @@ class Main:
             obj.clear_table()
             err_print(obj.ui, e)
 
-    def query_result_buttonForRow(self, result, date):
-        """
-        每行表格最后一列添加按钮
-
-        :param result: 数据库查询结果
-        :param date: 日期
-        :return: QPushButton
-        """
-        btn = QPushButton('订票')
-        btn.clicked.connect(lambda: self.booking(result, date))
-        return btn
-
     def booking(self, result, date):
         """
         订票，切换座位选择界面
@@ -640,17 +625,6 @@ class Main:
         except Exception as e:
             err_print(self.booking_query_ui.ui, e)
 
-    def booking_query_buttonForRow(self, result):
-        """
-        每行表格最后一列添加按钮
-
-        :param result: 数据库查询结果
-        :return: QPushButton
-        """
-        btn = QPushButton('退票')
-        btn.clicked.connect(lambda: self.refund(result))
-        return btn
-
     def refund(self, result):
         """
         处理退票
@@ -754,6 +728,36 @@ class Main:
                                     QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
             except Exception as e:
                 err_print(self.management_ui.ui, e)
+
+    def management_to_insert(self):
+        pass
+
+    """
+    辅助处理函数
+    """
+
+    def query_result_buttonForRow(self, result, date):
+        """
+        每行表格最后一列添加按钮
+
+        :param result: 数据库查询结果
+        :param date: 日期
+        :return: QPushButton
+        """
+        btn = QPushButton('订票')
+        btn.clicked.connect(lambda: self.booking(result, date))
+        return btn
+
+    def booking_query_buttonForRow(self, result):
+        """
+        每行表格最后一列添加按钮
+
+        :param result: 数据库查询结果
+        :return: QPushButton
+        """
+        btn = QPushButton('退票')
+        btn.clicked.connect(lambda: self.refund(result))
+        return btn
 
     def sql_update_func(self, ui, sql_update):
         """
