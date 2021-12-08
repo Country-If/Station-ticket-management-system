@@ -13,6 +13,7 @@ from query_result_login import query_result_login_ui
 from user_center import user_center_ui
 from booking_query import booking_query_ui
 from seat_choose import seat_choose_ui
+from management import management_ui
 
 
 class Main:
@@ -39,11 +40,13 @@ class Main:
         self.user_center_ui = user_center_ui()
         self.booking_query_ui = booking_query_ui()
         self.seat_choose_ui = seat_choose_ui()
+        self.management_ui = management_ui()
 
         # 信号与槽连接
         self.main_ui.ui.register_btn.clicked.connect(self.main_to_register)
         self.main_ui.ui.login_btn.clicked.connect(self.main_to_login)
         self.main_ui.ui.query_btn.clicked.connect(self.main_to_query)
+        self.main_ui.ui.manage_btn.clicked.connect(self.main_to_management)
 
         self.register_ui.ui.back_btn.clicked.connect(self.register_back)
 
@@ -72,6 +75,11 @@ class Main:
 
         self.seat_choose_ui.ui.back_btn.clicked.connect(self.seat_choose_back)
         self.seat_choose_ui.ui.confirm_btn.clicked.connect(self.seat_choose_confirm)
+
+        self.management_ui.ui.back_btn.clicked.connect(self.management_back)
+        self.management_ui.ui.update_btn.clicked.connect(self.management_to_update)
+        self.management_ui.ui.insert_btn.clicked.connect(self.management_to_insert)
+        self.management_ui.ui.delete_btn.clicked.connect(self.management_to_delete)
 
     """
     主要的界面切换函数
@@ -104,6 +112,15 @@ class Main:
         """
         self.main_ui.ui.close()
         self.query_ui.ui.show()
+
+    def main_to_management(self):
+        """
+        主界面前往管理界面
+
+        :return: None
+        """
+        self.main_ui.ui.close()
+        self.management_ui.ui.show()
 
     # register ui
     def register_back(self):
@@ -255,6 +272,22 @@ class Main:
         """
         self.seat_choose_ui.ui.close()
         self.query_result_login_ui.ui.show()
+
+    # management ui
+    def management_back(self):
+        """
+        管理界面返回
+
+        :return: None
+        """
+        self.management_ui.ui.close()
+        self.main_ui.ui.show()
+
+    def management_to_insert(self):
+        pass
+
+    def management_to_delete(self):
+        pass
 
     """
     功能处理函数
@@ -435,20 +468,22 @@ class Main:
             result = self.cursor.fetchall()
             if len(result) == 0:
                 raise ValueError("查询不到数据")
-            # 插入数据
-            for row in range(len(result)):  # 逐行
-                obj.ui.result_table.insertRow(row)  # 新增一行
-                for col in range(len(result[0]) + 1):  # 逐列
-                    if col == len(result[0]):  # 表格最后一列，添加按钮
-                        obj.ui.result_table.setCellWidget(row, col, self.query_result_buttonForRow(result[row], date))
-                    else:
-                        if result[row][col] is None:
-                            item = QTableWidgetItem(str(0))
+            else:
+                # 插入数据
+                for row in range(len(result)):  # 逐行
+                    obj.ui.result_table.insertRow(row)  # 新增一行
+                    for col in range(len(result[0]) + 1):  # 逐列
+                        if col == len(result[0]):  # 表格最后一列，添加按钮
+                            obj.ui.result_table.setCellWidget(row, col,
+                                                              self.query_result_buttonForRow(result[row], date))
                         else:
-                            item = QTableWidgetItem(str(result[row][col]))
-                        item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
-                        item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
-                        obj.ui.result_table.setItem(row, col, item)
+                            if result[row][col] is None:
+                                item = QTableWidgetItem(str(0))
+                            else:
+                                item = QTableWidgetItem(str(result[row][col]))
+                            item.setFlags(Qt.ItemIsEnabled)  # 设置单元格为只读
+                            item.setTextAlignment(Qt.AlignCenter)  # 设置文本内容居中
+                            obj.ui.result_table.setItem(row, col, item)
         except Exception as e:
             obj.clear_table()
             err_print(obj.ui, e)
@@ -641,6 +676,129 @@ class Main:
         except Exception as e:
             self.connect_obj.rollback()
             err_print(self.booking_query_ui.ui, e)
+
+    def management_to_update(self):
+        """
+        获取修改信息并修改
+
+        :return: None
+        """
+        input_train_id = InputDialog_getText(self.management_ui.ui, '修改', '请输入车次')
+        if input_train_id:
+            sql_query_train = r"select train_id from train_information where `train_id`='%s';" % input_train_id
+            try:
+                self.cursor.execute(sql_query_train)
+                result = self.cursor.fetchall()
+                if len(result) == 0:
+                    QMessageBox.critical(self.management_ui.ui, '查询失败', '查询不到车次信息')
+                else:
+                    update_items = ('始发站', '终点站', '日期', '发车时间', '到达时间', '一等座票价', '二等座票价')
+                    update_item, okPressed = QInputDialog.getItem(self.management_ui.ui, '修改', '选择修改内容', update_items,
+                                                                  0, False)
+                    if okPressed:
+                        if update_item == update_items[0]:
+                            updated_departure = InputDialog_getText(self.management_ui.ui, '修改', '请输入修改后的始发站')
+                            if updated_departure:
+                                sql_update = r"update train_information set `departure`='%s' where `train_id`='%s';" \
+                                             % (updated_departure, input_train_id)
+                                flag = self.sql_update_func(self.management_ui.ui, sql_update)
+                                if flag:
+                                    QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
+                        elif update_item == update_items[1]:
+                            updated_destination = InputDialog_getText(self.management_ui.ui, '修改', '请输入修改后的终点站')
+                            if updated_destination:
+                                sql_update = r"update train_information set `destination`='%s' where `train_id`='%s';" \
+                                             % (updated_destination, input_train_id)
+                                flag = self.sql_update_func(self.management_ui.ui, sql_update)
+                                if flag:
+                                    QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
+                        elif update_item == update_items[2]:
+                            updated_date = self.get_update_date()
+                            if updated_date != "":
+                                sql_update = r"update train_information set `date`='%s' where `train_id`='%s';" \
+                                             % (updated_date, input_train_id)
+                                flag = self.sql_update_func(self.management_ui.ui, sql_update)
+                                if flag:
+                                    QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
+                        elif update_item == update_items[3]:
+                            updated_departure_time = self.get_update_time()
+                            if updated_departure_time != "":
+                                sql_update = r"update train_information set `departure_time`='%s' where `train_id`='%s';" \
+                                             % (updated_departure_time, input_train_id)
+                                flag = self.sql_update_func(self.management_ui.ui, sql_update)
+                                if flag:
+                                    QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
+                        elif update_item == update_items[4]:
+                            updated_arrival_time = self.get_update_time()
+                            if updated_arrival_time != "":
+                                sql_update = r"update train_information set `arrival_time`='%s' where `train_id`='%s';" \
+                                             % (updated_arrival_time, input_train_id)
+                                flag = self.sql_update_func(self.management_ui.ui, sql_update)
+                                if flag:
+                                    QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
+                        elif update_item == update_items[5]:
+                            price = InputDialog_getPrice(self.management_ui.ui, '修改', '请输入修改后的一等座票价')
+                            if price:
+                                sql_update = r"update seat_information set `price`='%s' where `train_id`='%s' and `rank`='一等座';" \
+                                             % (price, input_train_id)
+                                flag = self.sql_update_func(self.management_ui.ui, sql_update)
+                                if flag:
+                                    QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
+                        else:
+                            price = InputDialog_getPrice(self.management_ui.ui, '修改', '请输入修改后的二等座票价')
+                            if price:
+                                sql_update = r"update seat_information set `price`='%s' where `train_id`='%s' and `rank`='二等座';" \
+                                             % (price, input_train_id)
+                                flag = self.sql_update_func(self.management_ui.ui, sql_update)
+                                if flag:
+                                    QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
+            except Exception as e:
+                err_print(self.management_ui.ui, e)
+
+    def sql_update_func(self, ui, sql_update):
+        """
+        数据库更新操作
+
+        :param ui: 父窗口
+        :param sql_update: SQL更新语句
+        :return: bool
+        """
+        try:
+            self.cursor.execute(sql_update)
+            self.connect_obj.commit()
+            return True
+        except Exception as e:
+            err_print(ui, e)
+            self.connect_obj.rollback()
+            return False
+
+    def get_update_date(self):
+        """
+        获取输入的更新日期
+
+        :return: str
+        """
+        updated_date = InputDialog_getText(self.management_ui.ui, '修改', '请输入修改后的日期(yyyy-MM-dd)')
+        try:
+            time.strptime(updated_date, '%Y-%m-%d')
+            return updated_date
+        except Exception:
+            err_print(self.management_ui.ui, "输入格式有误，请重新输入")
+            return ""
+
+    def get_update_time(self):
+        """
+        获取输入的更新时间
+
+        :return: str
+        """
+        updated_time = InputDialog_getText(self.management_ui.ui, '修改', '请输入修改后的时间(HH:mm)')
+        try:
+            time.strptime(updated_time, '%H:%M')
+            return updated_time
+        except Exception:
+            err_print(self.management_ui.ui, "输入格式有误，请重新输入")
+            return ""
 
 
 def db_connect():
