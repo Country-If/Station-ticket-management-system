@@ -541,12 +541,14 @@ class Main:
                     for seat_id in seat_id_tuple:
                         # 用户选取的座位位置有票
                         if self.seat_choose_ui.location_chosen in seat_id[0]:
-                            sql_query = r"select `rank`,`price` from seat_information where `train_id`='%s' and `seat_id`='%s';" \
+                            sql_query = r"select `rank`,`price` from seat_information " \
+                                        r"where `train_id`='%s' and `seat_id`='%s';" \
                                         % (result[0], seat_id[0])
                             try:
                                 self.cursor.execute(sql_query)
                                 rank_price = self.cursor.fetchall()  # 获取座位等级和价格
-                                sql_update = r"update seat_information set `is_used`=1 where `train_id`='%s' and `seat_id`='%s';" \
+                                sql_update = r"update seat_information set `is_used`=1 " \
+                                             r"where `train_id`='%s' and `seat_id`='%s';" \
                                              % (result[0], seat_id[0])
                                 sql_insert = r"insert into booking_information " \
                                              r"(`user_name`,`train_id`,`seat_id`,`date`,`departure_time`,`rank`,`price`) " \
@@ -569,12 +571,14 @@ class Main:
                     # 用户选取的座位位置无票
                     if not flag:
                         seat_id = seat_id_tuple[0]  # 取tuple中第一个位置
-                        sql_query = r"select `rank`,`price` from seat_information where `train_id`='%s' and `seat_id`='%s';" \
+                        sql_query = r"select `rank`,`price` from seat_information " \
+                                    r"where `train_id`='%s' and `seat_id`='%s';" \
                                     % (result[0], seat_id[0])
                         try:
                             self.cursor.execute(sql_query)
                             rank_price = self.cursor.fetchall()  # 获取座位等级和价格
-                            sql_update = r"update seat_information set `is_used`=1 where `train_id`='%s' and `seat_id`='%s';" \
+                            sql_update = r"update seat_information set `is_used`=1 " \
+                                         r"where `train_id`='%s' and `seat_id`='%s';" \
                                          % (result[0], seat_id[0])
                             sql_insert = r"insert into booking_information " \
                                          r"(`user_name`,`train_id`,`seat_id`,`date`,`departure_time`,`rank`,`price`) " \
@@ -605,7 +609,8 @@ class Main:
 
         :return: None
         """
-        sql = r"select booking_id,train_id,seat_id,date,departure_time,`rank`,price from booking_information where user_name='%s' and is_deleted=0;" % self.username
+        sql = r"select booking_id,train_id,seat_id,date,departure_time,`rank`,price from booking_information " \
+              r"where user_name='%s' and is_deleted=0;" % self.username
         try:
             # 数据库查询数据
             self.cursor.execute(sql)
@@ -697,7 +702,8 @@ class Main:
                         elif update_item == update_items[3]:
                             updated_departure_time = self.get_update_time()
                             if updated_departure_time != "":
-                                sql_update = r"update train_information set `departure_time`='%s' where `train_id`='%s';" \
+                                sql_update = r"update train_information set `departure_time`='%s' " \
+                                             r"where `train_id`='%s';" \
                                              % (updated_departure_time, input_train_id)
                                 flag = self.sql_update_func(self.management_ui.ui, sql_update)
                                 if flag:
@@ -705,7 +711,8 @@ class Main:
                         elif update_item == update_items[4]:
                             updated_arrival_time = self.get_update_time()
                             if updated_arrival_time != "":
-                                sql_update = r"update train_information set `arrival_time`='%s' where `train_id`='%s';" \
+                                sql_update = r"update train_information set `arrival_time`='%s' " \
+                                             r"where `train_id`='%s';" \
                                              % (updated_arrival_time, input_train_id)
                                 flag = self.sql_update_func(self.management_ui.ui, sql_update)
                                 if flag:
@@ -713,7 +720,8 @@ class Main:
                         elif update_item == update_items[5]:
                             price = InputDialog_getPrice(self.management_ui.ui, '修改', '请输入修改后的一等座票价')
                             if price:
-                                sql_update = r"update seat_information set `price`='%s' where `train_id`='%s' and `rank`='一等座';" \
+                                sql_update = r"update seat_information set `price`='%s' " \
+                                             r"where `train_id`='%s' and `rank`='一等座';" \
                                              % (price, input_train_id)
                                 flag = self.sql_update_func(self.management_ui.ui, sql_update)
                                 if flag:
@@ -721,7 +729,8 @@ class Main:
                         else:
                             price = InputDialog_getPrice(self.management_ui.ui, '修改', '请输入修改后的二等座票价')
                             if price:
-                                sql_update = r"update seat_information set `price`='%s' where `train_id`='%s' and `rank`='二等座';" \
+                                sql_update = r"update seat_information set `price`='%s' " \
+                                             r"where `train_id`='%s' and `rank`='二等座';" \
                                              % (price, input_train_id)
                                 flag = self.sql_update_func(self.management_ui.ui, sql_update)
                                 if flag:
@@ -786,7 +795,7 @@ class Main:
         try:
             time.strptime(updated_date, '%Y-%m-%d')
             return updated_date
-        except Exception:
+        except ValueError:
             err_print(self.management_ui.ui, "输入格式有误，请重新输入")
             return ""
 
@@ -800,7 +809,7 @@ class Main:
         try:
             time.strptime(updated_time, '%H:%M')
             return updated_time
-        except Exception:
+        except ValueError:
             err_print(self.management_ui.ui, "输入格式有误，请重新输入")
             return ""
 
