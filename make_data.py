@@ -3,10 +3,7 @@
 
 __author__ = "Maylon"
 
-import pymysql
-import random
-import time
-import datetime
+from tool import *
 
 
 def main():
