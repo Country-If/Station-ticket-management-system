@@ -752,6 +752,7 @@ class Main:
                 else:
                     date = get_date(self.management_ui.ui, '插入')
                     if date:
+                        # 对输入的日期判断其合理性
                         now = datetime.datetime.now()
                         if (now - datetime.datetime.strptime(date, '%Y-%m-%d')) > datetime.timedelta(days=0):
                             err_print(self.management_ui.ui, '输入的日期有误，日期至少应延后一天')
@@ -764,6 +765,7 @@ class Main:
                                     if first_price:
                                         second_price = InputDialog_getInt(self.management_ui.ui, '插入', '请输入二等座票价')
                                         if second_price:
+                                            # 对输入的价格判断其合理性
                                             if first_price <= second_price:
                                                 err_print(self.management_ui.ui, '价格设置不合理，一等座票价应高于二等座票价')
                                             else:
@@ -780,7 +782,31 @@ class Main:
 
         :return: None
         """
-        pass
+        train_id = InputDialog_getText(self.management_ui.ui, '删除', '请输入要删除的车次')
+        sql_query_train = r"select * from train_information where train_id='%s';" % train_id
+        try:
+            # 查询有无对应车次的信息
+            self.cursor.execute(sql_query_train)
+            result = self.cursor.fetchall()
+            if len(result) == 0:
+                err_print(self.management_ui.ui, '查询不到该车次信息')
+            else:
+                # 确认删除提示
+                choice = QMessageBox.question(self.management_ui.ui, '确认', '确认执行删除操作？此操作不可撤销！')
+                if choice == QMessageBox.Yes:
+                    # 执行删除操作
+                    sql_delete = r"delete from train_information where train_id='%s';" % train_id
+                    try:
+                        self.cursor.execute(sql_delete)
+                        self.connect_obj.commit()
+                        QMessageBox.information(self.management_ui.ui, '成功', '该车次已成功删除')
+                    except Exception as e:
+                        err_print(self.management_ui.ui, e)
+                        self.connect_obj.rollback()
+                elif choice == QMessageBox.No:
+                    pass
+        except Exception as e:
+            err_print(self.management_ui.ui, e)
 
     """
     辅助处理函数
@@ -858,9 +884,10 @@ class Main:
         :param second_price: 二等座票价
         :return: bool
         """
+        # 插入车次表
         sql_insert_train = r"insert into train_information (train_id, departure, destination, " \
                            r"date, departure_time, arrival_time) " \
-                           r"values ('%s', '%s', '%s', '%s', '%s', '%s')" \
+                           r"values ('%s', '%s', '%s', '%s', '%s', '%s');" \
                            % (train_id, departure, destination, date, departure_time, arrival_time)
         try:
             self.cursor.execute(sql_insert_train)
@@ -888,7 +915,7 @@ class Main:
                         seat_id_list.append('0' + str(row) + '车' + '0' + str(col) + t)
                         rank_list.append('二等座')
                         price_list.append(second_price)
-        # 插入数据库
+        # 插入座位表
         for i in range(len(seat_id_list)):
             sql_insert_seat = r"insert into seat_information (train_id, seat_id, `rank`, price, is_used) " \
                               r"values ('%s', '%s', '%s', '%s', '%s');" \
@@ -934,6 +961,11 @@ def db_connect():
 
 
 def main():
+    """
+    主程序入口
+
+    :return: None
+    """
     Server, Connect_obj, Cursor = db_connect()
 
     if Cursor:
@@ -952,6 +984,11 @@ def main():
 
 
 def run_local():
+    """
+    本地测试
+
+    :return: None
+    """
     Connect = pymysql.connect(host='localhost', user='root', password='root', database='ticket_management_system',
                               port=3306)
     Cursor = Connect.cursor()
