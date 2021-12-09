@@ -38,8 +38,8 @@ def make_data_train(Connect, Cursor):
     arrival_time_list = []
     # 车次
     id_list = random.sample(range(2222, 9999), num)
-    for id in id_list:
-        train_id_list.append(random.choice(['G', 'K', 'D', 'L']) + str(id))
+    for num_id in id_list:
+        train_id_list.append(random.choice(['G', 'K', 'D', 'L']) + str(num_id))
     print(train_id_list)
     # 地点
     location_list = ['广州', '深圳', '佛山', '珠海', '厦门', '北京', '上海', '南京', '杭州', '天津', '成都', '西安', '桂林']
@@ -52,13 +52,13 @@ def make_data_train(Connect, Cursor):
     # 时间
     t1 = datetime.datetime.now() + datetime.timedelta(days=30)
     t2 = t1 + datetime.timedelta(days=30)
-    start = time.mktime(tuple(t1.timetuple()))
-    end = time.mktime(tuple(t2.timetuple()))
+    start = int(time.mktime(tuple(t1.timetuple())))
+    end = int(time.mktime(tuple(t2.timetuple())))
     for _ in range(num):
         t = random.randint(start, end)
-        date_touple = time.localtime(t)
-        date_list.append(time.strftime("%Y-%m-%d", date_touple))
-        departure_time_list.append(time.strftime("%H:%M", date_touple))
+        date_tuple = time.localtime(t)
+        date_list.append(time.strftime("%Y-%m-%d", date_tuple))
+        departure_time_list.append(time.strftime("%H:%M", date_tuple))
     print(date_list)
     print(departure_time_list)
     for departure_time in departure_time_list:
@@ -67,8 +67,10 @@ def make_data_train(Connect, Cursor):
     print(arrival_time_list)
     # 插入数据库
     for i in range(num):
-        sql = r"insert into train_information(train_id, departure, destination, date, departure_time, arrival_time) values ('%s', '%s', '%s', '%s', '%s', '%s');" \
-              % (train_id_list[i], departure_list[i], destination_list[i], date_list[i], departure_time_list[i], arrival_time_list[i])
+        sql = r"insert into train_information(train_id, departure, destination, date, departure_time, arrival_time) " \
+              r"values ('%s', '%s', '%s', '%s', '%s', '%s');" \
+              % (train_id_list[i], departure_list[i], destination_list[i],
+                 date_list[i], departure_time_list[i], arrival_time_list[i])
         try:
             Cursor.execute(sql)
             Connect.commit()
