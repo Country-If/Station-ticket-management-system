@@ -548,7 +548,8 @@ class Main:
                                              r"where `train_id`='%s' and `seat_id`='%s';" \
                                              % (result[0], seat_id[0])
                                 sql_insert = r"insert into booking_information " \
-                                             r"(`user_name`,`train_id`,`seat_id`,`date`,`departure_time`,`rank`,`price`) " \
+                                             r"(`user_name`, `train_id`, `seat_id`, " \
+                                             r"`date`, `departure_time`, `rank`, `price`) " \
                                              r"values ('%s','%s','%s','%s','%s','%s','%s');" \
                                              % (self.username, result[0], seat_id[0], date, result[1], rank_price[0][0],
                                                 rank_price[0][1])
@@ -766,13 +767,12 @@ class Main:
                                             if first_price <= second_price:
                                                 err_print(self.management_ui.ui, '价格设置不合理，一等座票价应高于二等座票价')
                                             else:
-                                                print(departure)
-                                                print(destination)
-                                                print(date)
-                                                print(departure_time)
-                                                print(arrival_time)
-                                                print(first_price)
-                                                print(second_price)
+                                                flag = self.insert_train_seat(train_id, departure, destination,
+                                                                              date, departure_time, arrival_time,
+                                                                              first_price, second_price)
+                                                if flag:
+                                                    QMessageBox.information(self.management_ui.ui, '添加成功',
+                                                                            '添加的车次为：' + train_id)
 
     def management_to_delete(self):
         """
@@ -842,6 +842,65 @@ class Main:
                     return train_id
             except Exception as e:
                 err_print(self.management_ui.ui, e)
+
+    def insert_train_seat(self, train_id, departure, destination, date, departure_time, arrival_time,
+                          first_price, second_price):
+        """
+        管理界面插入数据实现函数
+
+        :param train_id: 车次
+        :param departure: 始发站
+        :param destination: 终点站
+        :param date: 日期
+        :param departure_time: 发车时间
+        :param arrival_time: 到达时间
+        :param first_price: 一等座票价
+        :param second_price: 二等座票价
+        :return: bool
+        """
+        sql_insert_train = r"insert into train_information (train_id, departure, destination, " \
+                           r"date, departure_time, arrival_time) " \
+                           r"values ('%s', '%s', '%s', '%s', '%s', '%s')" \
+                           % (train_id, departure, destination, date, departure_time, arrival_time)
+        try:
+            self.cursor.execute(sql_insert_train)
+            self.connect_obj.commit()
+        except Exception as e:
+            err_print(self.management_ui.ui, e)
+            self.connect_obj.rollback()
+            return False
+
+        row_num = 3  # 车数
+        col_num = 4  # 座位排数
+        seat_id_list = []
+        rank_list = []
+        price_list = []
+        # 造数据
+        for row in range(1, row_num + 1):
+            for col in range(1, col_num + 1):
+                if row == 1:
+                    for t in ['A', 'B']:
+                        seat_id_list.append('0' + str(row) + '车' + '0' + str(col) + t)
+                        rank_list.append('一等座')
+                        price_list.append(first_price)
+                else:
+                    for t in ['A', 'B', 'C', 'E', 'F']:
+                        seat_id_list.append('0' + str(row) + '车' + '0' + str(col) + t)
+                        rank_list.append('二等座')
+                        price_list.append(second_price)
+        # 插入数据库
+        for i in range(len(seat_id_list)):
+            sql_insert_seat = r"insert into seat_information (train_id, seat_id, `rank`, price, is_used) " \
+                              r"values ('%s', '%s', '%s', '%s', '%s');" \
+                              % (train_id, seat_id_list[i], rank_list[i], price_list[i], 0)
+            try:
+                self.cursor.execute(sql_insert_seat)
+                self.connect_obj.commit()
+            except Exception as e:
+                err_print(self.management_ui.ui, e)
+                self.connect_obj.rollback()
+                return False
+        return True
 
 
 def db_connect():
