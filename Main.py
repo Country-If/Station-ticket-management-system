@@ -283,9 +283,6 @@ class Main:
         self.management_ui.ui.close()
         self.main_ui.ui.show()
 
-    def management_to_delete(self):
-        pass
-
     """
     主要功能处理函数
     """
@@ -692,16 +689,16 @@ class Main:
                                 if flag:
                                     QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
                         elif update_item == update_items[2]:
-                            updated_date = self.get_update_date()
-                            if updated_date != "":
+                            updated_date = get_date(self.management_ui.ui, '修改')
+                            if updated_date:
                                 sql_update = r"update train_information set `date`='%s' where `train_id`='%s';" \
                                              % (updated_date, input_train_id)
                                 flag = self.sql_update_func(self.management_ui.ui, sql_update)
                                 if flag:
                                     QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
                         elif update_item == update_items[3]:
-                            updated_departure_time = self.get_update_time()
-                            if updated_departure_time != "":
+                            updated_departure_time = get_time(self.management_ui.ui, '修改')
+                            if updated_departure_time:
                                 sql_update = r"update train_information set `departure_time`='%s' " \
                                              r"where `train_id`='%s';" \
                                              % (updated_departure_time, input_train_id)
@@ -709,8 +706,8 @@ class Main:
                                 if flag:
                                     QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
                         elif update_item == update_items[4]:
-                            updated_arrival_time = self.get_update_time()
-                            if updated_arrival_time != "":
+                            updated_arrival_time = get_time(self.management_ui.ui, '修改')
+                            if updated_arrival_time:
                                 sql_update = r"update train_information set `arrival_time`='%s' " \
                                              r"where `train_id`='%s';" \
                                              % (updated_arrival_time, input_train_id)
@@ -718,7 +715,7 @@ class Main:
                                 if flag:
                                     QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
                         elif update_item == update_items[5]:
-                            price = InputDialog_getPrice(self.management_ui.ui, '修改', '请输入修改后的一等座票价')
+                            price = InputDialog_getInt(self.management_ui.ui, '修改', '请输入修改后的一等座票价')
                             if price:
                                 sql_update = r"update seat_information set `price`='%s' " \
                                              r"where `train_id`='%s' and `rank`='一等座';" \
@@ -727,7 +724,7 @@ class Main:
                                 if flag:
                                     QMessageBox.information(self.management_ui.ui, '提示', '修改成功')
                         else:
-                            price = InputDialog_getPrice(self.management_ui.ui, '修改', '请输入修改后的二等座票价')
+                            price = InputDialog_getInt(self.management_ui.ui, '修改', '请输入修改后的二等座票价')
                             if price:
                                 sql_update = r"update seat_information set `price`='%s' " \
                                              r"where `train_id`='%s' and `rank`='二等座';" \
@@ -739,6 +736,50 @@ class Main:
                 err_print(self.management_ui.ui, e)
 
     def management_to_insert(self):
+        """
+        获取插入信息并插入
+
+        :return: None
+        """
+        train_id = self.generate_train_id()
+        departure = InputDialog_getText(self.management_ui.ui, '插入', '请输入始发站')
+        if departure:
+            destination = InputDialog_getText(self.management_ui.ui, '插入', '请输入终点站')
+            if destination:
+                if destination == departure:
+                    err_print(self.management_ui.ui, '始发站和终点站重复')
+                else:
+                    date = get_date(self.management_ui.ui, '插入')
+                    if date:
+                        now = datetime.datetime.now()
+                        if (now - datetime.datetime.strptime(date, '%Y-%m-%d')) > datetime.timedelta(days=0):
+                            err_print(self.management_ui.ui, '输入的日期有误，日期至少应延后一天')
+                        else:
+                            departure_time = get_time(self.management_ui.ui, '发车时间')
+                            if departure_time:
+                                arrival_time = get_time(self.management_ui.ui, '到达时间')
+                                if arrival_time:
+                                    first_price = InputDialog_getInt(self.management_ui.ui, '插入', '请输入一等座票价')
+                                    if first_price:
+                                        second_price = InputDialog_getInt(self.management_ui.ui, '插入', '请输入二等座票价')
+                                        if second_price:
+                                            if first_price <= second_price:
+                                                err_print(self.management_ui.ui, '价格设置不合理，一等座票价应高于二等座票价')
+                                            else:
+                                                print(departure)
+                                                print(destination)
+                                                print(date)
+                                                print(departure_time)
+                                                print(arrival_time)
+                                                print(first_price)
+                                                print(second_price)
+
+    def management_to_delete(self):
+        """
+        获取删除信息并删除
+
+        :return: None
+        """
         pass
 
     """
@@ -785,33 +826,22 @@ class Main:
             self.connect_obj.rollback()
             return False
 
-    def get_update_date(self):
+    def generate_train_id(self):
         """
-        获取输入的更新日期
+        随机生成车次
 
-        :return: str
+        :return: (str)车次
         """
-        updated_date = InputDialog_getText(self.management_ui.ui, '修改', '请输入修改后的日期(yyyy-MM-dd)')
-        try:
-            time.strptime(updated_date, '%Y-%m-%d')
-            return updated_date
-        except ValueError:
-            err_print(self.management_ui.ui, "输入格式有误，请重新输入")
-            return ""
-
-    def get_update_time(self):
-        """
-        获取输入的更新时间
-
-        :return: str
-        """
-        updated_time = InputDialog_getText(self.management_ui.ui, '修改', '请输入修改后的时间(HH:mm)')
-        try:
-            time.strptime(updated_time, '%H:%M')
-            return updated_time
-        except ValueError:
-            err_print(self.management_ui.ui, "输入格式有误，请重新输入")
-            return ""
+        while True:
+            train_id = random.choice(['G', 'K', 'D', 'L']) + str(random.randint(1000, 9999))
+            sql = r"select * from train_information where `train_id`='%s';" % train_id
+            try:
+                self.cursor.execute(sql)
+                result = self.cursor.fetchall()
+                if len(result) == 0:
+                    return train_id
+            except Exception as e:
+                err_print(self.management_ui.ui, e)
 
 
 def db_connect():
