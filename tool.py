@@ -40,15 +40,57 @@ def InputDialog_getText(ui, title, label):
         return input_text
 
 
-def InputDialog_getPrice(ui, title, label):
+def InputDialog_getInt(ui, title, label):
     """
-    弹出输入对话框获取票价
+    弹出输入对话框获取整数
 
     :param ui: 父窗口
     :param title: 标题
     :param label: 标签
-    :return: (int)票价
+    :return: int
     """
-    input_int, okPressed = QInputDialog.getInt(ui, title, label, 100, minValue=10, maxValue=10000)
+    input_int, okPressed = QInputDialog.getInt(ui, title, label, 1, minValue=1, maxValue=10000)
     if okPressed:
         return input_int
+
+
+def get_date(ui, title):
+    """
+    获取输入的日期
+
+    :param ui: 父窗口
+    :param title: 标题
+    :return: str
+    """
+    input_date = InputDialog_getText(ui, title, '请输入日期(yyyy-MM-dd)')
+    if input_date:
+        try:
+            time.strptime(input_date, '%Y-%m-%d')
+            return input_date
+        except ValueError:
+            err_print(ui, "输入格式有误")
+            return
+        except Exception as e:
+            err_print(ui, e)
+            return
+
+
+def get_time(ui, title):
+    """
+    获取输入的时间
+
+    :param ui: 父窗口
+    :param title: 标题
+    :return: str
+    """
+    input_time = InputDialog_getText(ui, title, '请输入时间(HH:mm)')
+    if input_time:
+        try:
+            time.strptime(input_time, '%H:%M')
+            return input_time
+        except ValueError:
+            err_print(ui, "输入格式有误")
+            return
+        except Exception as e:
+            err_print(ui, e)
+            return
