@@ -38,7 +38,10 @@ def InputDialog_getText(ui, title, label):
     """
     input_text, okPressed = QInputDialog.getText(ui, title, label, QLineEdit.Normal)
     if okPressed:
-        return input_text
+        if input_text:
+            return input_text
+        else:
+            err_print(ui, '输入为空')
 
 
 def InputDialog_getInt(ui, title, label):
