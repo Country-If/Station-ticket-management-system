@@ -19,6 +19,7 @@ class booking_query_ui:
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)
+        self.ui.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def setUsername(self, username):
         self.ui.username_label.setText(username)

@@ -25,6 +25,7 @@ class query_result_login_ui:
         qfile.open(QFile.ReadOnly)
         qfile.close()
         self.ui = QUiLoader().load(qfile)
+        self.ui.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def change_information(self, username, date, departure, destination):
         """
