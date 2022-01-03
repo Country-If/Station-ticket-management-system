@@ -505,7 +505,6 @@ class Main:
         """
         flag = False  # 订票成功标志
         result = self.seat_choose_ui.result
-        date = self.seat_choose_ui.date
         # 判断按钮勾选是否完整
         if self.seat_choose_ui.rank_chosen == "" or self.seat_choose_ui.location_chosen == "":  # 勾选不完整
             err_print(self.seat_choose_ui.ui, '请勾选必需选项')
@@ -538,21 +537,14 @@ class Main:
                     for seat_id in seat_id_tuple:
                         # 用户选取的座位位置有票
                         if self.seat_choose_ui.location_chosen in seat_id[0]:
-                            sql_query = r"select `rank`,`price` from seat_information " \
-                                        r"where `train_id`='%s' and `seat_id`='%s';" \
-                                        % (result[0], seat_id[0])
                             try:
-                                self.cursor.execute(sql_query)
-                                rank_price = self.cursor.fetchall()  # 获取座位等级和价格
                                 sql_update = r"update seat_information set `is_used`=1 " \
                                              r"where `train_id`='%s' and `seat_id`='%s';" \
                                              % (result[0], seat_id[0])
                                 sql_insert = r"insert into booking_information " \
-                                             r"(`user_name`, `train_id`, `seat_id`, " \
-                                             r"`date`, `departure_time`, `rank`, `price`) " \
-                                             r"values ('%s','%s','%s','%s','%s','%s','%s');" \
-                                             % (self.username, result[0], seat_id[0], date, result[1], rank_price[0][0],
-                                                rank_price[0][1])
+                                             r"(`user_name`, `train_id`, `seat_id`) " \
+                                             r"values ('%s','%s','%s');" \
+                                             % (self.username, result[0], seat_id[0])
                                 try:
                                     self.cursor.execute(sql_update)  # 修改对应座位的占用标识
                                     self.connect_obj.commit()
@@ -569,20 +561,14 @@ class Main:
                     # 用户选取的座位位置无票
                     if not flag:
                         seat_id = seat_id_tuple[0]  # 取tuple中第一个位置
-                        sql_query = r"select `rank`,`price` from seat_information " \
-                                    r"where `train_id`='%s' and `seat_id`='%s';" \
-                                    % (result[0], seat_id[0])
                         try:
-                            self.cursor.execute(sql_query)
-                            rank_price = self.cursor.fetchall()  # 获取座位等级和价格
                             sql_update = r"update seat_information set `is_used`=1 " \
                                          r"where `train_id`='%s' and `seat_id`='%s';" \
                                          % (result[0], seat_id[0])
                             sql_insert = r"insert into booking_information " \
-                                         r"(`user_name`,`train_id`,`seat_id`,`date`,`departure_time`,`rank`,`price`) " \
-                                         r"values ('%s','%s','%s','%s','%s','%s','%s');" \
-                                         % (self.username, result[0], seat_id[0], date, result[1], rank_price[0][0],
-                                            rank_price[0][1])
+                                         r"(`user_name`,`train_id`,`seat_id`) " \
+                                         r"values ('%s','%s','%s');" \
+                                         % (self.username, result[0], seat_id[0])
                             try:
                                 self.cursor.execute(sql_update)  # 修改对应座位的占用标识
                                 self.connect_obj.commit()
@@ -607,8 +593,12 @@ class Main:
 
         :return: None
         """
-        sql = r"select booking_id,train_id,seat_id,date,departure_time,`rank`,price from booking_information " \
-              r"where user_name='%s' and is_deleted=0;" % self.username
+        sql = r"select booking_id,b.train_id,b.seat_id,date,departure_time,`rank`,price " \
+              r"from booking_information b, train_information t, seat_information s " \
+              r"where user_name='%s' and is_deleted=0 " \
+              r"and b.train_id=t.train_id " \
+              r"and b.train_id=s.train_id " \
+              r"and b.seat_id=s.seat_id;" % self.username
         try:
             # 数据库查询数据
             self.cursor.execute(sql)

@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 80022
 File Encoding         : 65001
 
-Date: 2021-12-13 21:44:10
+Date: 2022-01-04 01:55:43
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -24,9 +24,3 @@ CREATE TABLE `user_information` (
   `password` varchar(255) NOT NULL,
   PRIMARY KEY (`user_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
--- ----------------------------
--- Records of user_information
--- ----------------------------
-INSERT INTO `user_information` VALUES ('aaa', 'aaa');
-INSERT INTO `user_information` VALUES ('bbb', 'bbb');
