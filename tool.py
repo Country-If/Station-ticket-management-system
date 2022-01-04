@@ -9,11 +9,17 @@ from PySide2.QtWidgets import QApplication, QMessageBox, \
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QFile, QDate, Qt
 import sys
+import os
 import pymysql
 from sshtunnel import SSHTunnelForwarder
 import random
 import datetime
 import time
+
+
+# 解决程序移植后动态库缺失的问题
+# 需要将D:\anaconda3\envs\py3.7\Lib\site-packages\PySide2\plugins\下的platforms目录拷贝至与可执行文件相同的目录下
+# os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'platforms'
 
 
 def err_print(ui, err):
