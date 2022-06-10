@@ -934,8 +934,12 @@ def db_connect():
             ssh_password='mysql_db',  # 云服务器登录密码
             remote_bind_address=('localhost', 3306)  # 数据库服务地址ip,一般为localhost和端口port，一般为3306
         )
-        # 云服务器开启
-        server.start()
+        try:
+            # 云服务器开启
+            server.start()
+        except Exception as e:
+            print(e)
+            return None, None, None
         # 云服务器上mysql数据库连接
         connect_obj = pymysql.connect(host='127.0.0.1',  # 此处必须是是127.0.0.1
                                       port=server.local_bind_port,
@@ -948,6 +952,7 @@ def db_connect():
         return server, connect_obj, cursor
     except Exception as e:
         print(e)
+        return None, None, None
 
 
 def main():
@@ -967,10 +972,10 @@ def main():
         except Exception as e:
             print(e)
 
-    # 断开连接
-    Cursor.close()
-    Connect_obj.close()
-    Server.close()
+        # 断开连接
+        Cursor.close()
+        Connect_obj.close()
+        Server.close()
 
 
 def run_local():
