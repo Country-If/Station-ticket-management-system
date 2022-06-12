@@ -773,30 +773,31 @@ class Main:
         :return: None
         """
         train_id = InputDialog_getText(self.management_ui.ui, '删除', '请输入要删除的车次')
-        sql_query_train = r"select * from train_information where train_id='%s';" % train_id
-        try:
-            # 查询有无对应车次的信息
-            self.cursor.execute(sql_query_train)
-            result = self.cursor.fetchall()
-            if len(result) == 0:
-                err_print(self.management_ui.ui, '查询不到该车次信息')
-            else:
-                # 确认删除提示
-                choice = QMessageBox.question(self.management_ui.ui, '确认', '确认执行删除操作？此操作不可撤销！')
-                if choice == QMessageBox.Yes:
-                    # 执行删除操作
-                    sql_delete = r"delete from train_information where train_id='%s';" % train_id
-                    try:
-                        self.cursor.execute(sql_delete)
-                        self.connect_obj.commit()
-                        QMessageBox.information(self.management_ui.ui, '成功', '该车次已成功删除')
-                    except Exception as e:
-                        err_print(self.management_ui.ui, e)
-                        self.connect_obj.rollback()
-                elif choice == QMessageBox.No:
-                    pass
-        except Exception as e:
-            err_print(self.management_ui.ui, e)
+        if train_id:
+            sql_query_train = r"select * from train_information where train_id='%s';" % train_id
+            try:
+                # 查询有无对应车次的信息
+                self.cursor.execute(sql_query_train)
+                result = self.cursor.fetchall()
+                if len(result) == 0:
+                    err_print(self.management_ui.ui, '查询不到该车次信息')
+                else:
+                    # 确认删除提示
+                    choice = QMessageBox.question(self.management_ui.ui, '确认', '确认执行删除操作？此操作不可撤销！')
+                    if choice == QMessageBox.Yes:
+                        # 执行删除操作
+                        sql_delete = r"delete from train_information where train_id='%s';" % train_id
+                        try:
+                            self.cursor.execute(sql_delete)
+                            self.connect_obj.commit()
+                            QMessageBox.information(self.management_ui.ui, '成功', '该车次已成功删除')
+                        except Exception as e:
+                            err_print(self.management_ui.ui, e)
+                            self.connect_obj.rollback()
+                    elif choice == QMessageBox.No:
+                        pass
+            except Exception as e:
+                err_print(self.management_ui.ui, e)
 
     """
     辅助处理函数
