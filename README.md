@@ -1,4 +1,9 @@
 # Station-ticket-management-system
+
+- 安全状态
+
+[![Security Status](https://www.murphysec.com/platform3/v3/badge/1612483228867276800.svg?t=1)](https://www.murphysec.com/accept?code=931f0b2a6e7b87fcd38d52242a6e52f1&type=1&from=2&t=2)
+
 ## 写在前面
 - 本系统是本学期的数据库课程设计，写次文档便于理清后台配置，尤其是数据库的配置
 - 该系统数据库部署在阿里云服务器上，账号信息在代码中可见，请勿攻击本人的服务器以及利用服务器做非法的事情
